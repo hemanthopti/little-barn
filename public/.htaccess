@@ -1,0 +1,20 @@
+# Little Barn on Apache / Hostinger shared hosting
+
+# Always serve over HTTPS (needed for the microphone and offline mode)
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+AddType application/manifest+json .webmanifest
+AddType audio/mp4 .m4a
+
+<IfModule mod_headers.c>
+  # Hashed build files never change: cache for a year
+  <FilesMatch "-[A-Za-z0-9_-]{8}\.(js|css|woff2?)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  # These must always be checked so updates reach players
+  <FilesMatch "^(index\.html|sw\.js|registerSW\.js|manifest\.webmanifest|manifest\.json)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
