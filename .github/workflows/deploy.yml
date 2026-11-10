@@ -1,0 +1,28 @@
+# Every push to main builds the game and uploads it to play.starlinkwatch.com (Hostinger, over FTPS).
+# Repo secrets needed (Settings → Secrets and variables → Actions):
+#   FTP_SERVER    e.g. ftp.starlinkwatch.com  (Hostinger hPanel → Files → FTP Accounts)
+#   FTP_USERNAME  FTP_PASSWORD
+#   FTP_DIR       folder of the subdomain on the server, ending in /  e.g. public_html/play/
+name: Deploy
+on:
+  push: { branches: [main] }
+  workflow_dispatch:
+concurrency: deploy
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build
+        env: { OUT_DIR: dist }
+      - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist/
+          server-dir: ${{ secrets.FTP_DIR }}

@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   base: './',
   // Builds straight into the synced starlinkwatch folder, which uploads to public_html/play.
-  build: { target: 'es2020', assetsInlineLimit: 0, outDir: '../starlinkwatch/play', emptyOutDir: true },
+  build: { target: 'es2020', assetsInlineLimit: 0, outDir: process.env.OUT_DIR || '../starlinkwatch/play', emptyOutDir: true },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
