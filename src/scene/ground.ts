@@ -12,6 +12,14 @@ const FLOWER_H = 60;
 const flowers: (Interactive & { id: string; g: Element })[] = [];
 let n = 0;
 
+/** Flowers only grow on open grass: not in or around the pond, not on the path, not under the barn. */
+export function flowerSpotOk(x: number, y: number) {
+  if (((x - 830) / 262) ** 2 + ((y - 782) / 96) ** 2 < 1) return false;           // pond and its rim
+  if (y > 640) { const cx = 330 + (y - 655) * .457, hw = 55 + (y - 655) * .48; if (Math.abs(x - cx) < hw) return false; } // path
+  if (x < 590 && y < 680) return false;                                              // barn front
+  return y > 680;
+}
+
 export function addFlower(x: number, y: number, instant = false) {
   const id = 'fl' + (n++);
   const g = el('g', { 'data-id': id }, $('lFlowers'));

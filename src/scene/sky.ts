@@ -6,7 +6,7 @@ import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
 import { img, fit } from '../art/sprites';
 import { sparkleAt, ripple, raindrop } from './fx';
-import { addFlower } from './ground';
+import { addFlower, flowerSpotOk } from './ground';
 
 const SUN = { x: 1420, y: 130 };
 let skyTaps = 0;
@@ -36,7 +36,7 @@ function rain(c: { x: number; y: number; raining: boolean }) {
     const x = c.x + rnd(-95, 95), ty = rnd(680, 890), i = k++;
     raindrop(x, c.y + 45, ty, () => {
       if (inPond(x, ty)) { if (i % 2 === 0) ripple(x, ty); }
-      else if (i % 4 === 0) addFlower(x, ty);
+      else if (i % 4 === 0 && flowerSpotOk(x, ty)) addFlower(x, ty);
     });
   }, 60);
   setTimeout(() => { clearInterval(iv); c.raining = false; }, 2400);
