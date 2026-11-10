@@ -117,3 +117,17 @@ export function zzz(x: number, y: number) {
     fade(g, t < .2 ? t * 5 : 1 - (t - .2) / .8);
   }, () => g.remove());
 }
+
+/** Confetti burst for a found answer. */
+export function confetti(x: number, y: number, n = 36) {
+  for (let i = 0; i < n; i++) {
+    const c = pick(['#FF6B6B', '#FFD43B', '#69DB7C', '#4DABF7', '#9775FA', '#F783AC', '#FFA94D']);
+    const g = fx(`<rect x="-6" y="-3.5" width="12" height="7" rx="2" fill="${c}"/>`, x, y); fade(g, 1);
+    const a = rnd(-Math.PI, 0), v = rnd(220, 420), vx = Math.cos(a) * v * .9, vy = Math.sin(a) * v, spin = rnd(-720, 720);
+    tween(1500, t => {
+      const s = t * 1.5;
+      g.setAttribute('transform', `translate(${x + vx * s},${y + vy * s + 320 * s * s}) rotate(${spin * t}) scale(${1 - t * .3})`);
+      fade(g, t < .75 ? 1 : (1 - t) * 4);
+    }, () => g.remove());
+  }
+}

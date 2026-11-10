@@ -41,6 +41,8 @@
     <image href="art/fence.webp" x="590" y="520" width="240" height="88.7" preserveAspectRatio="none"/>
     <image href="art/fence.webp" x="826" y="520" width="240" height="88.7" preserveAspectRatio="none"/>
     <image href="art/fence.webp" x="1062" y="520" width="240" height="88.7" preserveAspectRatio="none"/>
+    <g id="fenceGlow" pointer-events="none"></g>
+    <rect data-id="fence" x="592" y="516" width="708" height="96" fill="transparent"/>
   </g>
 
   <!-- barn -->
@@ -64,7 +66,11 @@
   <!-- tree -->
   <g id="tree" data-id="tree">
     <ellipse cx="1335" cy="688" rx="190" ry="24" fill="url(#shadowG)"/>
-    <g id="canopy"><image href="art/tree.webp" x="1120" y="220" width="419.8" height="470" preserveAspectRatio="none"/></g>
+    <g id="canopy">
+      <image href="art/tree.webp" x="1120" y="220" width="419.8" height="470" preserveAspectRatio="none" pointer-events="none"/>
+      <ellipse cx="1330" cy="380" rx="215" ry="165" fill="transparent"/>
+      <rect x="1285" y="520" width="95" height="170" fill="transparent"/>
+    </g>
   </g>
 
   <!-- pond -->
@@ -77,6 +83,7 @@
   <g id="lPeek"></g>
   <rect id="shade" x="-2400" y="-2400" width="6400" height="6400" fill="#0B1640" opacity="0" pointer-events="none"/>
   <g id="lStars" opacity="0" pointer-events="none"></g>
+  <g id="lFireflies" opacity="0" pointer-events="none"></g>
 
   <g id="sun" data-id="sun" transform="translate(1420,130)">
     <g id="sunSpin"><circle r="125" fill="url(#sunGlow)"/><image href="art/sun.webp" x="-80" y="-76.2" width="160" height="152.4" preserveAspectRatio="none"/></g>
@@ -114,6 +121,7 @@
     </details>
 
     <div class="row"><span>Bedtime timer<br><small id="timerNote">The animals fall asleep when time is up</small></span><div class="seg" id="timer"></div></div>
+    <div class="row"><span>"Where is the…?" questions<br><small>Now and then a voice asks your child to find an animal</small></span><button class="tog" id="tFind" aria-label="Find questions"></button></div>
     <div class="row"><span>Tips for you while you play together</span><button class="tog" id="tTips" aria-label="Parent tips"></button></div>
     <div class="row"><span>Voice mirror<br><small>The parrot repeats what your child says</small></span><button class="tog" id="tMirror" aria-label="Voice mirror"></button></div>
     <p class="note" id="micNote"></p>

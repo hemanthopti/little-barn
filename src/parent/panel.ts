@@ -43,6 +43,7 @@ export function initPanel() {
   });
   $('tSound').addEventListener('click', () => { state.sound = !state.sound; save(); changed(); });
   $('tTips').addEventListener('click', () => { state.tips = !state.tips; save(); changed(); });
+  $('tFind').addEventListener('click', () => { state.findit = !state.findit; save(); changed(); });
   $('tMirror').addEventListener('click', () => { state.mirror = !state.mirror; state.micBlocked = false; save(); changed(); });
   $('bNight').addEventListener('click', () => setNight(!state.night));
   $('bVis').addEventListener('click', () => showVisitor((state.visitor + 1) % VISITORS.length));
@@ -111,6 +112,7 @@ function render() {
     : state.timer ? `About ${minutesLeft()} min left, then the animals fall asleep` : 'The animals fall asleep when time is up';
   $('tSound').classList.toggle('on', state.sound);
   $('tTips').classList.toggle('on', state.tips);
+  $('tFind').classList.toggle('on', state.findit);
   $('tMirror').classList.toggle('on', state.mirror);
 
   const name = LANGS.find(l => l.id === state.lang)!.name;

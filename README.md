@@ -26,7 +26,7 @@ src/audio/          synth (fallback sounds), clips (recorded audio), speech (spo
 src/art/            sprite table (sprites.ts) and the cast (animals.ts)
 public/art/         painted art (WebP) made with the AI art kit
 src/content/        words per language
-src/scene/          life.ts (animal behaviours: wander, sniff, eat apples, nap, hop; duck paddles), barn, tree + apples, yard animals + parrot, pond + flowers, sky + night, daily visitors, effects
+src/scene/          findit.ts ("Where is the …?" game), fence.ts (musical fence), life.ts (animal behaviours: wander, sniff, eat apples, nap, hop; duck paddles), barn, tree + apples, yard animals + parrot, pond + flowers, sky + night, daily visitors, effects
 src/parent/         parent gate, settings panel, co-play tips
 scripts/            process-audio.mjs (npm run audio)
 recordings/         raw recordings, input for npm run audio
@@ -37,7 +37,7 @@ Every tappable thing has a `data-id` in the SVG and an entry in `objs` (`src/cor
 
 ## Parent features
 
-Hold ⚙ for 3 s. Family voices (recorded in-game, stored in IndexedDB, trimmed and loudness-matched on load), two family photos
+Hold ⚙ for 3 s. "Where is the…?" questions on/off, family voices (recorded in-game, stored in IndexedDB, trimmed and loudness-matched on load), two family photos
 (barn windows, tap for peekaboo), bedtime timer (night, lullaby, sleeping animals, taps only twinkle until "Wake up"),
 co-play tips for the parent, voice mirror, language, time of day, visitor, full screen. Nothing leaves the device.
 

@@ -81,3 +81,25 @@ export function initSky() {
   const hr = new Date().getHours();
   setNight(hr >= 19 || hr < 6, true);
 }
+
+/** Fireflies: soft glowing lights that drift over the yard at night. */
+export function initFireflies() {
+  const layer = $('lFireflies');
+  const flies = Array.from({ length: 16 }, () => {
+    const g = el('g', {}, layer);
+    g.innerHTML = `<circle r="13" fill="#FFF59D" opacity=".25"/><circle r="4.5" fill="#FFFDE7"/>`;
+    return { g, x: rnd(100, 1500), y: rnd(380, 860), a: rnd(0, 6.28), t: rnd(0, 6.28), s: rnd(.02, .045) };
+  });
+  tickers.add(dt => {
+    layer.style.opacity = state.night ? '1' : '0';
+    if (!state.night) return;
+    for (const f of flies) {
+      f.a += (Math.random() - .5) * .25; f.t += dt * .003;
+      f.x += Math.cos(f.a) * f.s * dt; f.y += Math.sin(f.a) * f.s * dt * .6;
+      if (f.x < 60 || f.x > 1540) f.a = Math.PI - f.a;
+      if (f.y < 360 || f.y > 880) f.a = -f.a;
+      f.g.setAttribute('transform', `translate(${f.x.toFixed(1)},${f.y.toFixed(1)})`);
+      f.g.setAttribute('opacity', (.35 + .65 * Math.abs(Math.sin(f.t))).toFixed(2));
+    }
+  });
+}

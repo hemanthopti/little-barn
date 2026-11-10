@@ -116,5 +116,18 @@ export const SYNTH: Record<string, () => number> = {
     [0, 8, 16, 24].forEach(b => tone({ type: 'triangle', f0: b === 8 ? 98 : 131, dur: beat * 8, vol: .05, att: .4, sus: .6, delay: b * beat }));
     return tune.length * beat;
   },
+  /** Kitten purr while being petted. */
+  purr() { noise({ dur: 1.1, filter: ['lowpass', 260, 2], vol: .32, att: .15, sus: .7 }); tone({ type: 'sine', f0: 26, dur: 1.1, vol: .06, att: .15, sus: .7 }); return 1; },
+  /** A soft contented "mmm" for other animals being petted. */
+  content() { tone({ type: 'triangle', f0: 230, f1: 200, dur: .9, vol: .07, att: .2, sus: .5, vib: [5, 6] }); return .9; },
+  /** Confetti celebration. */
+  yay() { [523, 659, 784, 1047, 1319].forEach((f, i) => tone({ f0: f, dur: .35, vol: .13, delay: i * .07 })); noise({ dur: .4, filter: ['highpass', 5000], vol: .05, delay: .3 }); return .7; },
   rain() { noise({ dur: 2.6, filter: ['bandpass', 2600, .6], vol: .08, att: .3, sus: .8 }); return .5; }
 };
+
+/** A xylophone note for the musical fence. */
+export function xylo(freq: number) {
+  tone({ type: 'sine', f0: freq, dur: .9, vol: .22, att: .004 });
+  tone({ type: 'sine', f0: freq * 4, dur: .15, vol: .035, att: .002 });
+  tone({ type: 'triangle', f0: freq * 2, dur: .3, vol: .04, att: .003 });
+}

@@ -13,7 +13,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#6EC6FF;touch-action:n
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
   .tw{animation:tw 2.4s ease-in-out infinite}
   @keyframes tw{0%,100%{opacity:1}50%{opacity:.25}}
-  #shade,#lStars,#sun,#moon{transition:opacity 1.6s ease}
+  #shade,#lStars,#lFireflies,#sun,#moon{transition:opacity 1.6s ease}
 
   #gear{position:fixed;top:10px;left:10px;width:52px;height:52px;border-radius:50%;border:none;
     background:rgba(255,255,255,.35);font-size:24px;line-height:52px;color:#3A2E2A;z-index:5;padding:0;opacity:.7}

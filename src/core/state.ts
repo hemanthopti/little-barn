@@ -12,7 +12,9 @@ export const state = {
   timer: 0,
   playStart: 0,
   asleep: false,
-  tips: false
+  tips: false,
+  /** "Where is the …?" questions */
+  findit: true
 };
 
 const KEY = 'littleBarn';
@@ -23,10 +25,11 @@ try {
   if (typeof saved.mirror === 'boolean') state.mirror = saved.mirror;
   if ([0, 10, 15, 20].includes(saved.timer)) state.timer = saved.timer;
   if (typeof saved.tips === 'boolean') state.tips = saved.tips;
+  if (typeof saved.findit === 'boolean') state.findit = saved.findit;
 } catch { /* storage unavailable: defaults are fine */ }
 
 export function save() {
-  try { localStorage.setItem(KEY, JSON.stringify({ lang: state.lang, sound: state.sound, mirror: state.mirror, timer: state.timer, tips: state.tips })); } catch { }
+  try { localStorage.setItem(KEY, JSON.stringify({ lang: state.lang, sound: state.sound, mirror: state.mirror, timer: state.timer, tips: state.tips, findit: state.findit })); } catch { }
 }
 
 /** Anything that shows state (the parent panel) listens here. */

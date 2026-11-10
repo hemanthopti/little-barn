@@ -1,6 +1,6 @@
 import { el, clamp, easeOut, inPond } from '../core/util';
-import { tween } from '../core/engine';
-import { objs, Interactive, Drag } from '../core/input';
+import { tween, tickers } from '../core/engine';
+import { objs, Interactive, Drag, Hold } from '../core/input';
 import { state } from '../core/state';
 import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
@@ -30,6 +30,8 @@ export class Animal implements Interactive {
   private faceG: SVGGElement;
   facing: 1 | -1 = -1;
   drag?: Drag;
+  hold?: Hold;
+  private petting = false;
   private off = { x: 0, y: 0 };
 
   constructor(public kind: Kind, public id: string, public x: number, public y: number, public h: number,
@@ -51,6 +53,28 @@ export class Animal implements Interactive {
     this.place();
     objs[id] = this;
     Animal.all.add(this);
+    // Petting: hold a finger on the animal. It closes its eyes happily, hearts float up, the kitten purrs.
+    this.hold = {
+      start: () => {
+        if (state.asleep || this.anim || this.busy) return;
+        this.petting = true; this.busy = true; this.setPose('happy'); this.setWalk(0, 0);
+        let t = 0, heartT = 0, soundT = 0;
+        const tick = (dt: number) => {
+          if (!this.petting) { tickers.delete(tick); return; }
+          t += dt; heartT += dt; soundT += dt;
+          this.setWalk(0, Math.sin(t / 140) * 4);
+          if (heartT > 320) { heartT = 0; const h = this.head(); hearts(h.x + (Math.random() - .5) * this.h * .4, h.y - 10, 1); }
+          if (soundT > 1000) { soundT = 0; sfx(this.kind === 'kitten' ? 'purr' : 'content'); }
+        };
+        sfx(this.kind === 'kitten' ? 'purr' : 'content');
+        tickers.add(tick);
+      },
+      end: () => {
+        if (!this.petting) return;
+        this.petting = false; this.busy = false; this.setWalk(0, 0); this.rest();
+        setTimeout(() => this.say(false), 100);
+      }
+    };
     if (draggable) this.drag = {
       start: p0 => {
         if (this.anim || state.asleep) return false;
