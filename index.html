@@ -17,90 +17,60 @@
 
 <svg id="stage" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="skyDay" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="600">
-      <stop offset="0" stop-color="#6EC6FF"/><stop offset="1" stop-color="#D2F0FF"/></linearGradient>
-    <linearGradient id="grass" gradientUnits="userSpaceOnUse" x1="0" y1="580" x2="0" y2="900">
-      <stop offset="0" stop-color="#8ED863"/><stop offset="1" stop-color="#5DB33E"/></linearGradient>
-    <radialGradient id="sunG"><stop offset="0" stop-color="#FFF6B0"/><stop offset="1" stop-color="#FFD23F"/></radialGradient>
-    <clipPath id="clipDoor"><rect x="272" y="472" width="156" height="158"/></clipPath>
-    <clipPath id="clipWin0"><rect x="178" y="374" width="56" height="56" rx="3"/></clipPath>
-    <clipPath id="clipWin1"><rect x="466" y="374" width="56" height="56" rx="3"/></clipPath>
-    <clipPath id="clipLoft"><rect x="307" y="232" width="86" height="76"/></clipPath>
+    <radialGradient id="shadowG"><stop offset="0" stop-color="#2A3A10" stop-opacity=".38"/><stop offset="1" stop-color="#2A3A10" stop-opacity="0"/></radialGradient>
+    <radialGradient id="sunGlow"><stop offset="0" stop-color="#FFF6B0" stop-opacity=".85"/><stop offset="1" stop-color="#FFF6B0" stop-opacity="0"/></radialGradient>
+    <clipPath id="clipDoor"><rect x="240.8" y="486.9" width="162.2" height="157.9"/></clipPath>
+    <clipPath id="clipLoft"><rect x="274.9" y="368.4" width="99.8" height="65.3"/></clipPath>
+    <clipPath id="clipWin0"><rect x="147.7" y="514.2" width="56.6" height="56.5" rx="3"/></clipPath>
+    <clipPath id="clipWin1"><rect x="438.6" y="514.2" width="56.6" height="56.5" rx="3"/></clipPath>
   </defs>
 
-  <rect x="-2400" y="-2400" width="6400" height="3100" fill="url(#skyDay)"/>
+  <!-- sky and far hills -->
+  <rect x="-2400" y="-2400" width="6400" height="3000" fill="#3BB0F3"/>
+  <image href="art/bg-hills.webp" x="-200" y="-327" width="2000" height="1126" preserveAspectRatio="none"/>
   <g id="lRainbow"></g>
   <g id="lClouds"></g>
   <g id="lBalloon"></g>
 
-  <!-- hills and ground -->
-  <path d="M-2400,640 V520 C-200,520 100,430 450,495 S1000,560 1250,470 S1700,460 4000,520 V640Z" fill="#A7E07E"/>
-  <path d="M-2400,600 C200,572 600,612 900,590 S1400,572 4000,598 V3400 H-2400Z" fill="url(#grass)"/>
-  <path d="M330,630 C320,720 260,800 250,3400 L430,3400 C420,800 380,720 370,630Z" fill="#E9CF97"/>
-  <g id="tufts" fill="none" stroke="#4E9E33" stroke-width="4" stroke-linecap="round"></g>
+  <!-- meadow -->
+  <image href="art/bg-ground.webp" x="-200" y="566" width="2000" height="415" preserveAspectRatio="none"/>
+  <rect x="-2400" y="978" width="6400" height="3000" fill="#7DB52C"/>
 
   <!-- fence -->
-  <g id="fence"></g>
+  <g id="fence">
+    <image href="art/fence.webp" x="590" y="520" width="240" height="88.7" preserveAspectRatio="none"/>
+    <image href="art/fence.webp" x="826" y="520" width="240" height="88.7" preserveAspectRatio="none"/>
+    <image href="art/fence.webp" x="1062" y="520" width="240" height="88.7" preserveAspectRatio="none"/>
+  </g>
 
   <!-- barn -->
   <g id="barn" data-id="barn">
-    <rect x="160" y="330" width="380" height="300" fill="#E4573D" stroke="#3A2E2A" stroke-width="5"/>
-    <g stroke="#C9432C" stroke-width="3">
-      <line x1="200" y1="345" x2="200" y2="628"/><line x1="240" y1="345" x2="240" y2="628"/>
-      <line x1="460" y1="345" x2="460" y2="628"/><line x1="500" y1="345" x2="500" y2="628"/>
-    </g>
-    <g id="win0" data-id="win0">
-      <rect x="176" y="372" width="60" height="60" rx="5" fill="#FFE9B0" stroke="#3A2E2A" stroke-width="4"/>
-      <g id="winPhoto0" clip-path="url(#clipWin0)"></g>
-      <g id="winCross0" stroke="#3A2E2A" stroke-width="3"><line x1="206" y1="372" x2="206" y2="432"/><line x1="176" y1="402" x2="236" y2="402"/></g>
-    </g>
-    <g id="win1" data-id="win1">
-      <rect x="464" y="372" width="60" height="60" rx="5" fill="#FFE9B0" stroke="#3A2E2A" stroke-width="4"/>
-      <g id="winPhoto1" clip-path="url(#clipWin1)"></g>
-      <g id="winCross1" stroke="#3A2E2A" stroke-width="3"><line x1="494" y1="372" x2="494" y2="432"/><line x1="464" y1="402" x2="524" y2="402"/></g>
-    </g>
-    <polygon points="125,348 350,162 575,348" fill="#B83A2A" stroke="#3A2E2A" stroke-width="5" stroke-linejoin="round"/>
-    <polyline points="145,338 350,178 555,338" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-    <!-- loft -->
-    <rect x="303" y="228" width="94" height="84" fill="#fff" stroke="#3A2E2A" stroke-width="4"/>
-    <rect x="307" y="232" width="86" height="76" fill="#4A2A1E"/>
+    <ellipse cx="320" cy="652" rx="270" ry="22" fill="url(#shadowG)"/>
+    <image href="art/barn.webp" x="80" y="290" width="480" height="364.6" preserveAspectRatio="none"/>
     <g id="loftIn" clip-path="url(#clipLoft)"></g>
     <g id="loftDoor" data-id="loft">
-      <rect x="0" y="0" width="1" height="1" fill="transparent"/>
-      <g id="loftL"><rect x="307" y="232" width="43" height="76" fill="#F3EDE2" stroke="#3A2E2A" stroke-width="3"/>
-        <path d="M307,232 L350,308 M350,232 L307,308" stroke="#C9432C" stroke-width="5"/></g>
-      <g id="loftR"><rect x="350" y="232" width="43" height="76" fill="#F3EDE2" stroke="#3A2E2A" stroke-width="3"/>
-        <path d="M350,232 L393,308 M393,232 L350,308" stroke="#C9432C" stroke-width="5"/></g>
+      <g id="loftL"><image href="art/loft-shutter.webp" x="274.9" y="368.4" width="49.9" height="65.3" preserveAspectRatio="none"/></g>
+      <g id="loftR"><image href="art/loft-shutter.webp" x="324.8" y="368.4" width="49.9" height="65.3" preserveAspectRatio="none"/></g>
     </g>
-    <!-- main door -->
-    <rect x="266" y="466" width="168" height="166" fill="#fff" stroke="#3A2E2A" stroke-width="4"/>
-    <rect x="272" y="472" width="156" height="158" fill="#4A2A1E"/>
     <g id="doorIn" clip-path="url(#clipDoor)"></g>
     <g id="mainDoor" data-id="door">
-      <g id="doorL"><rect x="272" y="472" width="78" height="158" fill="#E4573D" stroke="#3A2E2A" stroke-width="3"/>
-        <rect x="278" y="478" width="66" height="146" fill="none" stroke="#fff" stroke-width="7"/>
-        <path d="M280,480 L342,622 M342,480 L280,622" stroke="#fff" stroke-width="7"/></g>
-      <g id="doorR"><rect x="350" y="472" width="78" height="158" fill="#E4573D" stroke="#3A2E2A" stroke-width="3"/>
-        <rect x="356" y="478" width="66" height="146" fill="none" stroke="#fff" stroke-width="7"/>
-        <path d="M358,480 L420,622 M420,480 L358,622" stroke="#fff" stroke-width="7"/></g>
+      <g id="doorL"><image href="art/barn-door.webp" x="240.8" y="486.9" width="81.1" height="157.9" preserveAspectRatio="none"/></g>
+      <g id="doorR"><image href="art/barn-door.webp" x="321.9" y="486.9" width="81.1" height="157.9" preserveAspectRatio="none"/></g>
     </g>
+    <g id="win0" data-id="win0"><rect x="141" y="507" width="70" height="70" fill="transparent"/><g id="winPhoto0" clip-path="url(#clipWin0)"></g></g>
+    <g id="win1" data-id="win1"><rect x="432" y="507" width="70" height="70" fill="transparent"/><g id="winPhoto1" clip-path="url(#clipWin1)"></g></g>
   </g>
 
   <!-- tree -->
   <g id="tree" data-id="tree">
-    <path d="M1330,520 L1245,468" stroke="#3A2E2A" stroke-width="24" stroke-linecap="round"/>
-    <path d="M1330,520 L1245,468" stroke="#8A5A3B" stroke-width="16" stroke-linecap="round"/>
-    <path d="M1292,652 L1303,420 L1347,420 L1358,652 Z" fill="#8A5A3B" stroke="#3A2E2A" stroke-width="5" stroke-linejoin="round"/>
-    <g id="canopy"></g>
+    <ellipse cx="1335" cy="688" rx="190" ry="24" fill="url(#shadowG)"/>
+    <g id="canopy"><image href="art/tree.webp" x="1120" y="220" width="419.8" height="470" preserveAspectRatio="none"/></g>
   </g>
 
   <!-- pond -->
-  <g id="pond" data-id="pond">
-    <ellipse cx="830" cy="775" rx="235" ry="78" fill="#4FB3E8" stroke="#2E8BC0" stroke-width="5"/>
-    <ellipse cx="805" cy="762" rx="170" ry="46" fill="#71C9F3"/>
-    <path d="M700,750 q20,-6 40,0 M880,790 q20,-6 40,0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>
-  </g>
+  <g id="pond" data-id="pond"><image href="art/pond.webp" x="590" y="700" width="480" height="160.4" preserveAspectRatio="none"/></g>
 
+  <g id="lDecor"></g>
   <g id="lVisitor"></g>
   <g id="lFlowers"></g>
   <g id="lActors"></g>
@@ -109,22 +79,10 @@
   <g id="lStars" opacity="0" pointer-events="none"></g>
 
   <g id="sun" data-id="sun" transform="translate(1420,130)">
-    <g id="sunSpin">
-      <g class="rays" stroke="#FFB800" stroke-width="12" stroke-linecap="round" id="rays"></g>
-      <circle r="64" fill="url(#sunG)" stroke="#F2A900" stroke-width="5"/>
-      <g class="eye" style="--d:-1s"><circle cx="-20" cy="-10" r="7" fill="#3A2E2A"/></g>
-      <g class="eye" style="--d:-1s"><circle cx="20" cy="-10" r="7" fill="#3A2E2A"/></g>
-      <path d="M-22,14 q22,20 44,0" fill="none" stroke="#3A2E2A" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="-36" cy="8" r="9" fill="#FF9F80" opacity=".7"/><circle cx="36" cy="8" r="9" fill="#FF9F80" opacity=".7"/>
-    </g>
+    <g id="sunSpin"><circle r="125" fill="url(#sunGlow)"/><image href="art/sun.webp" x="-80" y="-76.2" width="160" height="152.4" preserveAspectRatio="none"/></g>
   </g>
   <g id="moon" data-id="moon" transform="translate(1420,130)" opacity="0" style="pointer-events:none">
-    <g id="moonSpin">
-      <circle r="58" fill="#FFF1B8" stroke="#E8C766" stroke-width="5"/>
-      <circle cx="24" cy="-24" r="9" fill="#F2DD8E"/><circle cx="-28" cy="22" r="6" fill="#F2DD8E"/>
-      <path d="M-28,-6 q8,8 16,0 M12,-6 q8,8 16,0" fill="none" stroke="#3A2E2A" stroke-width="4" stroke-linecap="round"/>
-      <path d="M-12,16 q12,10 24,0" fill="none" stroke="#3A2E2A" stroke-width="4" stroke-linecap="round"/>
-    </g>
+    <g id="moonSpin"><circle r="110" fill="url(#sunGlow)" opacity=".5"/><image href="art/moon.webp" x="-70" y="-73.4" width="140" height="146.8" preserveAspectRatio="none"/></g>
   </g>
   <g id="fx" pointer-events="none"></g>
 </svg>

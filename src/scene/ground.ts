@@ -1,29 +1,30 @@
-import { $, el, S, rnd, pick, easeOutBack, inPond } from '../core/util';
+import { $, el, rnd, pick, easeOutBack, inPond } from '../core/util';
 import { tween } from '../core/engine';
 import { objs, Interactive } from '../core/input';
 import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
-import { flowerArt } from '../art/props';
+import { img, fit } from '../art/sprites';
 import { yard } from './yard';
-import { ripple, butterfly } from './fx';
+import { ripple, butterfly, leaves, sparkleAt } from './fx';
 
 const MAX_FLOWERS = 30;
+const FLOWER_H = 60;
 const flowers: (Interactive & { id: string; g: Element })[] = [];
 let n = 0;
 
 export function addFlower(x: number, y: number, instant = false) {
   const id = 'fl' + (n++);
   const g = el('g', { 'data-id': id }, $('lFlowers'));
-  const petal = pick(['#FF7BAC', '#FFD23F', '#B57BFF', '#FF8A3D', '#fff', '#7FD6FF']);
-  g.innerHTML = `<g>${flowerArt(petal, petal === '#FFD23F' ? '#E8483B' : '#FFD23F')}</g>`;
+  const name = pick(['flower-1', 'flower-2', 'flower-3']), [w, h] = fit(name, undefined, FLOWER_H);
+  g.innerHTML = `<g><rect x="${-w * .6}" y="${-h * 1.05}" width="${w * 1.2}" height="${h * 1.1}" fill="transparent"/>${img(name, 0, 0, w, h)}</g>`;
   const r = g.firstChild as Element;
   const place = (k: number) => g.setAttribute('transform', `translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${k})`);
   if (instant) place(1); else tween(500, t => place(Math.max(.01, easeOutBack(t))));
   const o = {
     id, g,
     tap() {
-      sfx('sparkle'); butterfly(x, y - 45);
-      tween(450, t => r.setAttribute('transform', `translate(0,${-24 * Math.sin(Math.PI * t)}) rotate(${Math.sin(t * Math.PI * 4) * 12} 0 -40)`),
+      sfx('sparkle'); butterfly(x, y - h * .8);
+      tween(450, t => r.setAttribute('transform', `translate(0,${-20 * Math.sin(Math.PI * t)}) rotate(${Math.sin(t * Math.PI * 4) * 10} 0 ${-h * .6})`),
         () => r.removeAttribute('transform'));
       setTimeout(() => speak(Math.random() < .5 ? 'flower' : 'butterfly'), 250);
     }
@@ -32,8 +33,20 @@ export function addFlower(x: number, y: number, instant = false) {
   if (flowers.length > MAX_FLOWERS) { const old = flowers.shift()!; delete objs[old.id]; old.g.remove(); }
 }
 
+/** A decoration that wobbles when tapped. */
+function decor(id: string, name: string, x: number, y: number, w: number, onTap: (x: number, y: number) => void) {
+  const [dw, dh] = fit(name, w);
+  const g = el('g', { 'data-id': id }, $('lDecor'));
+  g.innerHTML = `<ellipse cx="0" cy="-3" rx="${dw * .42}" ry="${dh * .1}" fill="url(#shadowG)"/><g>${img(name, 0, 0, dw, dh)}</g>`;
+  g.setAttribute('transform', `translate(${x},${y})`);
+  const r = g.lastChild as Element;
+  objs[id] = { tap() {
+    onTap(x, y - dh * .6);
+    tween(500, t => { const k = Math.sin(t * Math.PI * 3) * (1 - t) * .08; r.setAttribute('transform', `scale(${1 + k},${1 - k})`); }, () => r.removeAttribute('transform'));
+  } };
+}
+
 export function initGround() {
-  // Pond
   objs.pond = {
     tap(p) {
       sfx('splash'); ripple(p.x, p.y);
@@ -43,22 +56,13 @@ export function initGround() {
     }
   };
 
-  // Fence
-  let fh = `<rect x="592" y="550" width="664" height="11" rx="4" fill="#F3E3C3" ${S} stroke-width="3"/><rect x="592" y="578" width="664" height="11" rx="4" fill="#F3E3C3" ${S} stroke-width="3"/>`;
-  for (let x = 600; x <= 1240; x += 64) fh += `<rect x="${x}" y="538" width="14" height="70" rx="4" fill="#F3E3C3" ${S} stroke-width="3"/>`;
-  $('fence').innerHTML = fh;
+  decor('bush0', 'bush', 40, 668, 210, (x, y) => { sfx('rustle'); leaves(x - 60, x + 60, y - 20, y + 10); butterfly(x, y); });
+  decor('bush1', 'bush', 1585, 690, 200, (x, y) => { sfx('rustle'); leaves(x - 60, x + 60, y - 20, y + 10); butterfly(x, y); });
+  decor('hay', 'hay', 640, 662, 140, (x, y) => { sfx('boing'); sparkleAt(x, y, 6, true); });
 
-  // Grass tufts
-  let th = '';
-  for (let i = 0; i < 26; i++) {
-    const x = rnd(0, 1600), y = rnd(640, 895);
-    if (inPond(x, y) || (x > 240 && x < 440)) continue;
-    const X = x.toFixed(0), Y = y.toFixed(0);
-    th += `<path d="M${X},${Y} l-6,-14 M${X},${Y} l0,-18 M${X},${Y} l6,-14"/>`;
-  }
-  $('tufts').innerHTML = th;
-
-  // Starting flowers
-  [[90, 880], [210, 870], [610, 885], [700, 872], [980, 885], [1290, 880], [1380, 892], [1560, 870], [60, 700], [580, 680]]
+  // Starting flowers: on open grass, away from the pond and the path
+  [[110, 880], [220, 860], [600, 890], [700, 885], [990, 890], [1290, 880], [1390, 895], [1560, 875], [60, 760], [1540, 760]]
     .forEach(([x, y]) => addFlower(x, y, true));
 }
+
+export const randomGroundSpot = () => ({ x: rnd(60, 1540), y: rnd(690, 890) });

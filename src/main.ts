@@ -11,6 +11,7 @@ import { sfx, loadManifest, preloadClips } from './audio/clips';
 import { speak } from './audio/speech';
 import { burst, trail } from './scene/fx';
 import { initGround } from './scene/ground';
+import { preloadArt } from './art/sprites';
 import { initBarn } from './scene/barn';
 import { initTree } from './scene/tree';
 import { initYard } from './scene/yard';
@@ -22,6 +23,7 @@ import { initBedtime } from './scene/bedtime';
 import { initTips } from './parent/tips';
 import { loadFamily, decodeFamily } from './audio/family';
 
+preloadArt();
 initGround();
 initBarn();
 initTree();

@@ -5,6 +5,7 @@ import { speak } from '../audio/speech';
 import { setNight } from './sky';
 import { yard } from './yard';
 import { zzz } from './fx';
+import { allPose } from './animal';
 
 /**
  * Bedtime timer. When time is up the farm goes to sleep: night falls, a lullaby plays, the animals
@@ -28,6 +29,7 @@ export function goToSleep() {
   if (state.asleep) return;
   state.asleep = true;
   $('stage').classList.add('asleep');
+  allPose('sleep');
   setNight(true, true);
   speak('sleep');
   setTimeout(() => sfx('lullaby'), 2200);
@@ -40,6 +42,7 @@ export function wakeUp() {
   state.asleep = false;
   clearInterval(zTimer);
   $('stage').classList.remove('asleep');
+  allPose('idle');
   state.playStart = Date.now();
   setNight(false);
   changed();

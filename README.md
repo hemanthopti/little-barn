@@ -23,7 +23,8 @@ index.html          static SVG scene (sky, barn, tree, pond) and the parent pane
 src/main.ts         boot order
 src/core/           util, animation engine, state + settings, touch/drag routing
 src/audio/          synth (fallback sounds), clips (recorded audio), speech (spoken words)
-src/art/            characters and props as SVG strings
+src/art/            sprite table (sprites.ts) and the cast (animals.ts)
+public/art/         painted art (WebP) made with the AI art kit
 src/content/        words per language
 src/scene/          barn, tree + apples, yard animals + parrot, pond + flowers, sky + night, daily visitors, effects
 src/parent/         parent gate, settings panel, co-play tips
@@ -66,7 +67,8 @@ Put files in `public/audio/` and list them in `public/audio/manifest.json`:
 
 - **A language:** add a column to `WORDS` and an entry to `LANGS` in `src/content/words.ts`.
 - **A visitor:** add an entry to `VISITORS` in `src/scene/visitors.ts` (`make()` builds it and returns a cleanup function).
-- **An animal:** draw it in `src/art/animals.ts` (origin between the feet, about 170 units tall), add `HEAD` and `VOICE`, then place it in `src/scene/yard.ts` or a barn door pool in `src/scene/barn.ts`.
+- **An animal:** add `<kind>-idle/-happy/-sleep.webp` to `public/art/` and their sizes to `SIZE` in `src/art/sprites.ts`, add it to `Kind` and `VOICE` in `src/art/animals.ts`, then place it in `src/scene/yard.ts` (x, y between the feet, standing height) or a barn door pool in `src/scene/barn.ts`.
+- **Replacing art:** keep the file name; if the new image has a different size, update its entry in `SIZE`.
 
 ## Rules (from the design doc)
 

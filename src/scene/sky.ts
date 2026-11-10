@@ -4,15 +4,16 @@ import { objs } from '../core/input';
 import { state, changed } from '../core/state';
 import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
-import { CLOUD } from '../art/props';
+import { img, fit } from '../art/sprites';
 import { sparkleAt, ripple, raindrop } from './fx';
 import { addFlower } from './ground';
 
 const SUN = { x: 1420, y: 130 };
 let skyTaps = 0;
 
-function makeCloud(id: string, x: number, y: number) {
-  const g = el('g', { 'data-id': id }, $('lClouds')); g.innerHTML = CLOUD;
+function makeCloud(id: string, name: string, w: number, x: number, y: number) {
+  const [cw, ch] = fit(name, w);
+  const g = el('g', { 'data-id': id }, $('lClouds')); g.innerHTML = `<g class="bob">${img(name, 0, 0, cw, ch, 'center')}</g>`;
   const c = { x, y, raining: false };
   const place = () => g.setAttribute('transform', `translate(${c.x.toFixed(1)},${c.y.toFixed(1)})`); place();
   let off = { x: 0, y: 0 };
@@ -32,10 +33,10 @@ function rain(c: { x: number; y: number; raining: boolean }) {
   c.raining = true; sfx('rain'); setTimeout(() => speak('rain'), 400);
   let k = 0;
   const iv = setInterval(() => {
-    const x = c.x + rnd(-95, 95), ty = rnd(650, 890), i = k++;
-    raindrop(x, c.y + 40, ty, () => {
+    const x = c.x + rnd(-95, 95), ty = rnd(680, 890), i = k++;
+    raindrop(x, c.y + 45, ty, () => {
       if (inPond(x, ty)) { if (i % 2 === 0) ripple(x, ty); }
-      else if (i % 4 === 0 && !(x > 1290 && x < 1360 && ty < 660)) addFlower(x, ty);
+      else if (i % 4 === 0) addFlower(x, ty);
     });
   }, 60);
   setTimeout(() => { clearInterval(iv); c.raining = false; }, 2400);
@@ -57,20 +58,15 @@ export function setNight(on: boolean, silent = false) {
 }
 
 export function initSky() {
-  makeCloud('cloud0', 560, 120);
-  makeCloud('cloud1', 960, 95);
+  makeCloud('cloud0', 'cloud-1', 270, 560, 120);
+  makeCloud('cloud1', 'cloud-2', 240, 960, 95);
 
-  const rays = $('rays');
-  for (let i = 0; i < 12; i++) {
-    const a = i * Math.PI / 6;
-    el('line', { x1: (Math.cos(a) * 78).toFixed(1), y1: (Math.sin(a) * 78).toFixed(1), x2: (Math.cos(a) * 100).toFixed(1), y2: (Math.sin(a) * 100).toFixed(1) }, rays);
-  }
 
   // Stars only in open sky: not over the tree, the barn roof or the moon.
   const stars = $('lStars');
   for (let i = 0, n = 0; n < 40 && i < 400; i++) {
     const x = rnd(-300, 1900), y = rnd(-150, 300);
-    if ((x > 1080 && x < 1560 && y > 120) || (x > 90 && x < 610 && y > 140) || Math.hypot(x - SUN.x, y - SUN.y) < 110) continue;
+    if ((x > 1100 && x < 1560 && y > 200) || (x > 60 && x < 590 && y > 270) || Math.hypot(x - SUN.x, y - SUN.y) < 110) continue;
     n++;
     el('path', { d: starPath(rnd(6, 12), 3.5), fill: '#FFF6C8', class: 'tw', transform: `translate(${x.toFixed(0)},${y.toFixed(0)})`, style: `animation-delay:-${rnd(0, 2.4).toFixed(2)}s` }, stars);
   }

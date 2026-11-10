@@ -9,15 +9,16 @@ export let yard: Animal[] = [];
 
 export function initYard() {
   const layer = $('lActors');
+  // kind, id, x, y (between the feet), standing height
   yard = [
-    new Animal('pig', 'pig', 470, 838, 1.0, layer, true),
-    new Animal('duck', 'duck', 760, 805, .85, layer, true),
-    new Animal('puppy', 'puppy', 1135, 872, 1.0, layer, true),
-    new Animal('kitten', 'kitten', 1478, 812, .95, layer, true)
+    new Animal('pig', 'pig', 470, 872, 165, layer, true),
+    new Animal('duck', 'duck', 785, 805, 115, layer, true),
+    new Animal('puppy', 'puppy', 1150, 885, 165, layer, true),
+    new Animal('kitten', 'kitten', 1470, 845, 155, layer, true)
   ];
   registerFeeders(() => yard);
 
-  const parrot = new Animal('parrot', 'parrot', 1183, 540, .8, layer, false);
+  const parrot = new Animal('parrot', 'parrot', 1240, 548, 115, layer, false, false);
   parrot.tap = () => voiceMirror(parrot);
 
   // Invite play after 20 s of no touches.
@@ -44,7 +45,7 @@ async function voiceMirror(p: Animal) {
   const au: any = new Audio(url);
   au.preservesPitch = false; au.mozPreservesPitch = false; au.webkitPreservesPitch = false;
   au.playbackRate = 1.6;
-  const wig = setInterval(() => p.bounce(), 700);
+  const wig = setInterval(() => p.bounce(), 800);
   const done = () => { clearInterval(wig); p.busy = false; URL.revokeObjectURL(url); };
   au.onended = done;
   au.play().catch(done);

@@ -4,7 +4,7 @@ import { objs } from '../core/input';
 import { state, changed } from '../core/state';
 import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
-import { BALLOON } from '../art/props';
+import { img, fit } from '../art/sprites';
 import { Animal, registerFeeders } from './animal';
 import { sparkleAt, ripple } from './fx';
 
@@ -18,18 +18,22 @@ export const VISITORS: Visitor[] = [
     name: 'Frog',
     make() {
       const layer = $('lVisitor');
-      const pad = el('ellipse', { cx: 990, cy: 808, rx: 46, ry: 15, fill: '#3E9E3A', stroke: '#2F7A2B', 'stroke-width': 3 }, layer);
-      const f = new Animal('frog', 'frog', 990, 806, .62, layer);
+      const f = new Animal('frog', 'frog', 1005, 812, 95, layer, false, false);
       f.tap = () => { f.say(); f.bounce(false, true); setTimeout(() => { sfx('splash'); ripple(f.x, f.y + 4); }, 850); };
       frog = f;
-      return () => { pad.remove(); f.remove(); frog = null; };
+      return () => { f.remove(); frog = null; };
     }
   },
   {
     name: 'Balloon',
     make() {
       const g = el('g', { 'data-id': 'balloon' }, $('lBalloon'));
-      g.innerHTML = `<g>${BALLOON}</g>`;
+      const [bw, bh] = fit('balloon', 125);
+      g.innerHTML = `<g><circle cx="0" cy="-60" r="85" fill="transparent"/>
+        <path d="M-22,-8 L-15,22 M22,-8 L15,22 M0,-4 L0,22" stroke="#7A4A2A" stroke-width="2.5"/>
+        <rect x="-20" y="20" width="40" height="28" rx="6" fill="#C68B59" stroke="#8A5A3B" stroke-width="3"/>
+        <path d="M-20,30 h40 M-20,39 h40" stroke="#A8703F" stroke-width="2.5"/>
+        ${img('balloon', 0, 0, bw, bh)}</g>`;
       const r = g.firstChild as Element;
       const o = { x: 140, y: 250, t: 0 };
       const tick = (dt: number) => {
@@ -50,16 +54,14 @@ export const VISITORS: Visitor[] = [
     name: 'Rainbow',
     make() {
       const g = el('g', { 'data-id': 'rainbow', opacity: .9 }, $('lRainbow'));
-      g.innerHTML = ['#FF6B6B', '#FFA94D', '#FFD43B', '#69DB7C', '#4DABF7', '#9775FA'].map((c, i) => {
-        const r = 440 - i * 20;
-        return `<path d="M${820 - r},612 A${r},${r} 0 0 1 ${820 + r},612" fill="none" stroke="${c}" stroke-width="21"/>`;
-      }).join('');
+      const [rw, rh] = fit('rainbow', 780);
+      g.innerHTML = img('rainbow', 820, 600, rw, rh);
       objs.rainbow = {
         tap() {
           sfx('chimeUp');
           for (let i = 0; i < 5; i++) {
             const a = Math.PI * (0.15 + 0.7 * Math.random());
-            setTimeout(() => sparkleAt(820 - Math.cos(a) * 390, 612 - Math.sin(a) * 390, 5, true), i * 120);
+            setTimeout(() => sparkleAt(820 - Math.cos(a) * 330, 600 - Math.sin(a) * 280, 5, true), i * 120);
           }
           setTimeout(() => speak('rainbow'), 300);
         }

@@ -34,5 +34,5 @@ export function starPath(r1: number, r2: number) {
 }
 
 /** Pond geometry, shared by several scene modules. */
-export const POND = { cx: 830, cy: 775, rx: 235, ry: 78 };
+export const POND = { cx: 830, cy: 792, rx: 205, ry: 56 };
 export const inPond = (x: number, y: number) => ((x - POND.cx) / POND.rx) ** 2 + ((y - POND.cy) / POND.ry) ** 2 < 1;

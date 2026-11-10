@@ -7,7 +7,7 @@ import type { Kind } from '../art/animals';
 import { Animal, registerFeeders } from './animal';
 import { hearts, sparkleAt } from './fx';
 
-type Base = { x: number; yShow: number; yHide: number; s: number };
+type Base = { x: number; yShow: number; yHide: number; h: number };
 const OPEN_MS = 3600;
 
 /** A barn opening: tap the shutters and the next animal in its pool pops out, then hides again. */
@@ -21,7 +21,7 @@ function makeDoor(id: string, panels: [string, number][], layer: Element, pool: 
 
   function open() {
     st = 'opening'; sfx('creak');
-    const a = new Animal(pool[i++ % pool.length], id + 'A', base.x, base.yHide, base.s, layer);
+    const a = new Animal(pool[i++ % pool.length], id + 'A', base.x, base.yHide, base.h, layer, false, false);
     animal = a;
     a.tap = () => { if (st !== 'open') return; a.bounce(); a.say(); const h = a.head(); hearts(h.x, h.y - 20, 3); resetTimer(); };
     tween(350, t => setPanels(1 - .86 * easeOut(t)));
@@ -43,8 +43,8 @@ function makeDoor(id: string, panels: [string, number][], layer: Element, pool: 
 
 export function initBarn() {
   const doors = [
-    makeDoor('door', [['doorL', 272], ['doorR', 428]], $('doorIn'), ['cow', 'sheep', 'cow', 'pig', 'sheep'], { x: 350, yShow: 632, yHide: 800, s: .8 }),
-    makeDoor('loft', [['loftL', 307], ['loftR', 393]], $('loftIn'), ['hen', 'kitten', 'hen', 'duck'], { x: 350, yShow: 320, yHide: 420, s: .5 })
+    makeDoor('door', [['doorL', 240.8], ['doorR', 403]], $('doorIn'), ['cow', 'sheep', 'cow', 'puppy', 'sheep'], { x: 322, yShow: 646, yHide: 830, h: 138 }),
+    makeDoor('loft', [['loftL', 274.9], ['loftR', 374.7]], $('loftIn'), ['hen', 'kitten', 'hen', 'parrot'], { x: 325, yShow: 455, yHide: 545, h: 74 })
   ];
   registerFeeders(() => doors.map(d => d.animalNow()));
 
@@ -54,7 +54,7 @@ export function initBarn() {
       const b = $('barn');
       tween(500, t => {
         const w = Math.sin(t * Math.PI * 3) * (1 - t) * .05;
-        b.setAttribute('transform', `translate(350,630) scale(${1 + w},${1 - w}) translate(-350,-630)`);
+        b.setAttribute('transform', `translate(320,655) scale(${1 + w},${1 - w}) translate(-320,-655)`);
       }, () => b.removeAttribute('transform'));
       setTimeout(() => speak('barn'), 250);
     }

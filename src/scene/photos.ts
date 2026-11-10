@@ -8,7 +8,7 @@ import { speak } from '../audio/speech';
 import { hearts, sparkleAt } from './fx';
 
 /** Family photos in the two barn side windows. Tap a window and the face pops out: peekaboo. */
-const WIN = [{ x: 206, y: 402 }, { x: 494, y: 402 }];
+const WIN = [{ x: 176, y: 542.4 }, { x: 466.9, y: 542.4 }];
 const KEY = (i: number) => `photo:${i}`;
 const urls: (string | null)[] = [null, null];
 const peeking = [false, false];
@@ -28,8 +28,7 @@ function show(i: number, blob: Blob | null) {
   if (urls[i]) URL.revokeObjectURL(urls[i]!);
   urls[i] = blob ? URL.createObjectURL(blob) : null;
   const g = $('winPhoto' + i); g.innerHTML = '';
-  if (urls[i]) el('image', { href: urls[i], x: WIN[i].x - 28, y: WIN[i].y - 28, width: 56, height: 56, preserveAspectRatio: 'xMidYMid slice' }, g);
-  $('winCross' + i).style.display = urls[i] ? 'none' : '';
+  if (urls[i]) el('image', { href: urls[i], x: WIN[i].x - 28.3, y: WIN[i].y - 28.3, width: 56.6, height: 56.6, preserveAspectRatio: 'xMidYMid slice' }, g);
   changed();
 }
 
