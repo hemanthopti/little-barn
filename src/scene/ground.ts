@@ -9,7 +9,8 @@ import { ripple, butterfly, leaves, sparkleAt } from './fx';
 
 const MAX_FLOWERS = 30;
 const FLOWER_H = 60;
-const flowers: (Interactive & { id: string; g: Element })[] = [];
+const flowers: (Interactive & { id: string; g: Element; x: number; y: number })[] = [];
+export const flowerSpots = () => flowers.map(f => ({ x: f.x, y: f.y, tap: () => f.tap({ x: f.x, y: f.y }) }));
 let n = 0;
 
 /** Flowers only grow on open grass: not in or around the pond, not on the path, not under the barn. */
@@ -29,7 +30,7 @@ export function addFlower(x: number, y: number, instant = false) {
   const place = (k: number) => g.setAttribute('transform', `translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${k})`);
   if (instant) place(1); else tween(500, t => place(Math.max(.01, easeOutBack(t))));
   const o = {
-    id, g,
+    id, g, x, y,
     tap() {
       sfx('sparkle'); butterfly(x, y - h * .8);
       tween(450, t => r.setAttribute('transform', `translate(0,${-20 * Math.sin(Math.PI * t)}) rotate(${Math.sin(t * Math.PI * 4) * 10} 0 ${-h * .6})`),

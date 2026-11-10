@@ -15,8 +15,9 @@ const TREE = { x: 1120, y: 220, w: 419.8, h: 470 };
 const SPOTS = [[.3, .28], [.52, .17], [.74, .3], [.42, .46], [.63, .5], [.2, .5], [.86, .5]];
 const APPLE_TREE = fit('apple', undefined, 46), APPLE_GROUND = fit('apple', undefined, 56);
 
-type GroundApple = Interactive & { id: string; g: SVGGElement; x: number; y: number };
+export type GroundApple = Interactive & { id: string; g: SVGGElement; x: number; y: number };
 const ground: GroundApple[] = [];
+export const groundApples = () => ground.filter(o => objs[o.id]);
 let n = 0;
 
 export function initTree() {
@@ -58,7 +59,7 @@ function dropApple(x0: number, y0: number) {
   const r = g.firstChild as SVGGElement;
   let s = 1, busy = true, off = { x: 0, y: 0 };
   const o: GroundApple = { id, g, x: x0, y: y0, tap: () => { }, drag: undefined };
-  const place = () => g.setAttribute('transform', `translate(${o.x.toFixed(1)},${o.y.toFixed(1)}) scale(${s})`);
+  const place = () => { g.setAttribute('transform', `translate(${o.x.toFixed(1)},${o.y.toFixed(1)}) scale(${s})`); g.dataset.y = String(s > 1 ? 99999 : o.y); };
   const fallTo = (gx: number, gy: number, dur: number) => {
     const sx = o.x, sy = o.y; busy = true;
     tween(dur, t => { o.x = sx + (gx - sx) * t; o.y = sy + (gy - sy) * bounceOut(t); place(); }, () => { busy = false; sfx('thud'); });
@@ -85,12 +86,12 @@ function dropApple(x0: number, y0: number) {
   if (ground.length > MAX_GROUND_APPLES) removeApple(ground[0]);
 }
 
-function eat(a: Animal, o: GroundApple) {
+export function eat(a: Animal, o: GroundApple, quiet = false) {
   delete objs[o.id];
   const i = ground.indexOf(o); if (i >= 0) ground.splice(i, 1);
   const h = a.head(), mx = h.x, my = h.y + a.h * .15, sx = o.x, sy = o.y;
   tween(350, t => o.g.setAttribute('transform', `translate(${sx + (mx - sx) * t},${sy + (my - sy) * t}) scale(${1 - t + .01})`), () => {
-    o.g.remove(); sfx('chomp'); a.bounce(); hearts(h.x, h.y - 30, 6);
-    setTimeout(() => speak('yummy'), 550);
+    o.g.remove(); sfx('chomp'); a.bounce(); hearts(h.x, h.y - 30, quiet ? 3 : 6);
+    if (!quiet) setTimeout(() => speak('yummy'), 550);
   });
 }

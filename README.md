@@ -26,7 +26,7 @@ src/audio/          synth (fallback sounds), clips (recorded audio), speech (spo
 src/art/            sprite table (sprites.ts) and the cast (animals.ts)
 public/art/         painted art (WebP) made with the AI art kit
 src/content/        words per language
-src/scene/          barn, tree + apples, yard animals + parrot, pond + flowers, sky + night, daily visitors, effects
+src/scene/          life.ts (animal behaviours: wander, sniff, eat apples, nap, hop; duck paddles), barn, tree + apples, yard animals + parrot, pond + flowers, sky + night, daily visitors, effects
 src/parent/         parent gate, settings panel, co-play tips
 scripts/            process-audio.mjs (npm run audio)
 recordings/         raw recordings, input for npm run audio

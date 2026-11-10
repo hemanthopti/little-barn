@@ -1,5 +1,5 @@
 import { $, el, rnd, clamp, easeOut, starPath, inPond } from '../core/util';
-import { tween } from '../core/engine';
+import { tween, tickers } from '../core/engine';
 import { objs } from '../core/input';
 import { state, changed } from '../core/state';
 import { sfx } from '../audio/clips';
@@ -14,15 +14,18 @@ let skyTaps = 0;
 function makeCloud(id: string, name: string, w: number, x: number, y: number) {
   const [cw, ch] = fit(name, w);
   const g = el('g', { 'data-id': id }, $('lClouds')); g.innerHTML = `<g class="bob">${img(name, 0, 0, cw, ch, 'center')}</g>`;
-  const c = { x, y, raining: false };
+  const c = { x, y, raining: false, dragging: false };
   const place = () => g.setAttribute('transform', `translate(${c.x.toFixed(1)},${c.y.toFixed(1)})`); place();
   let off = { x: 0, y: 0 };
+  // Clouds drift slowly across the sky and wrap around
+  const speed = .006 + Math.random() * .004;
+  tickers.add(dt => { if (c.dragging) return; c.x += dt * speed; if (c.x > 1800) c.x = -200; place(); });
   objs[id] = {
     tap: () => rain(c),
     drag: {
-      start: p0 => { off = { x: c.x - p0.x, y: c.y - p0.y }; },
+      start: p0 => { off = { x: c.x - p0.x, y: c.y - p0.y }; c.dragging = true; },
       move: p => { c.x = clamp(p.x + off.x, -40, 1640); c.y = clamp(p.y + off.y, 60, 260); place(); },
-      end: () => { if (!c.raining) rain(c); }
+      end: () => { c.dragging = false; if (!c.raining) rain(c); }
     }
   };
 }

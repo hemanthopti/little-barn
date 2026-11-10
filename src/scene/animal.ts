@@ -25,6 +25,10 @@ export class Animal implements Interactive {
   pose: Pose = 'idle';
   anim = false;
   busy = false;
+  dragging = false;
+  private walkG: SVGGElement;
+  private faceG: SVGGElement;
+  facing: 1 | -1 = -1;
   drag?: Drag;
   private off = { x: 0, y: 0 };
 
@@ -35,12 +39,14 @@ export class Animal implements Interactive {
     const w = iw * this.unit;
     this.g = el('g', { 'data-id': id }, layer) as SVGGElement;
     this.g.innerHTML = (withShadow ? `<ellipse cx="0" cy="-2" rx="${(w * .4).toFixed(1)}" ry="${(h * .07).toFixed(1)}" fill="url(#shadowG)"/>` : '') +
-      `<g class="react"><g class="idle" style="animation-delay:-${(Math.random() * 3).toFixed(2)}s">` +
+      `<g class="react"><g class="walk"><g class="face"><g class="idle" style="animation-delay:-${(Math.random() * 3).toFixed(2)}s">` +
       `<rect x="${(-w * .55).toFixed(1)}" y="${(-h * 1.05).toFixed(1)}" width="${(w * 1.1).toFixed(1)}" height="${(h * 1.1).toFixed(1)}" fill="transparent"/>` +
-      `<image preserveAspectRatio="none"/></g></g>`;
+      `<image preserveAspectRatio="none"/></g></g></g></g>`;
     this.shadow = withShadow ? this.g.querySelector('ellipse') : null;
     this.r = this.g.querySelector('.react') as SVGGElement;
     this.image = this.g.querySelector('image') as SVGImageElement;
+    this.walkG = this.g.querySelector('.walk') as SVGGElement;
+    this.faceG = this.g.querySelector('.face') as SVGGElement;
     this.setPose(state.asleep ? 'sleep' : 'idle');
     this.place();
     objs[id] = this;
@@ -49,6 +55,7 @@ export class Animal implements Interactive {
       start: p0 => {
         if (this.anim || state.asleep) return false;
         this.off = { x: this.x - p0.x, y: this.y - p0.y };
+        this.dragging = true; this.setWalk(0, 0);
         layer.appendChild(this.g); sfx('boing'); this.setPose('happy');
       },
       move: p => {
@@ -58,7 +65,7 @@ export class Animal implements Interactive {
         this.r.setAttribute('transform', `rotate(${Math.sin(performance.now() / 90) * 8} 0 ${-this.h * .4})`);
       },
       end: () => {
-        this.r.removeAttribute('transform'); this.setPose('idle');
+        this.r.removeAttribute('transform'); this.setPose('idle'); this.dragging = false; this.place();
         if (inPond(this.x, this.y)) { sfx('splash'); ripple(this.x, this.y); }
         this.bounce(); setTimeout(() => this.say(false), 150);
       }
@@ -75,7 +82,19 @@ export class Animal implements Interactive {
   }
   private rest() { this.setPose(state.asleep ? 'sleep' : 'idle'); }
 
-  place() { this.g.setAttribute('transform', `translate(${this.x.toFixed(1)},${this.y.toFixed(1)})`); }
+  place() {
+    this.g.setAttribute('transform', `translate(${this.x.toFixed(1)},${this.y.toFixed(1)})`);
+    this.g.dataset.y = String(this.dragging ? 99999 : this.y);
+  }
+  /** Face left (-1) or right (1). The painted animals all look to the left, so facing right means mirroring. */
+  setFacing(d: 1 | -1) { if (d === this.facing) return; this.facing = d; this.faceG.setAttribute('transform', d > 0 ? 'scale(-1,1)' : ''); }
+  /** Walking/sniffing body motion: lift (scene units) and tilt (degrees). */
+  setWalk(lift: number, tilt: number) {
+    if (!lift && !tilt) { this.walkG.removeAttribute('transform'); return; }
+    this.walkG.setAttribute('transform', `translate(0,${(-lift).toFixed(1)}) rotate(${tilt.toFixed(1)} 0 ${(-this.h * .3).toFixed(1)})`);
+  }
+  /** Free to do things on its own: not tapped, dragged, busy or asleep. */
+  free() { return !this.anim && !this.dragging && !this.busy && !state.asleep; }
   head() { return { x: this.x, y: this.y - this.h * (this.pose === 'sleep' ? .45 : .72) }; }
   remove() { this.g.remove(); delete objs[this.id]; Animal.all.delete(this); }
 
