@@ -24,6 +24,7 @@ export const WORDS: Record<string, Record<Lang, string>> = {
   barn: { en: 'Barn!', hi: 'खलिहान', kn: 'ಕೊಟ್ಟಿಗೆ' },
   night: { en: 'Good night!', hi: 'शुभ रात्रि', kn: 'ಶುಭ ರಾತ್ರಿ' },
   morning: { en: 'Good morning!', hi: 'सुप्रभात', kn: 'ಶುಭೋದಯ' },
+  hide: { en: 'Hide and seek! Find me!', hi: 'छुपन-छुपाई! मुझे ढूँढो!', kn: 'ಕಣ್ಣಾಮುಚ್ಚಾಲೆ! ನನ್ನನ್ನು ಹುಡುಕು!' },
   peekaboo: { en: 'Peekaboo!', hi: 'पीक-अ-बू!', kn: 'ಪೀಕ್-ಎ-ಬೂ!' },
   kitchen: { en: 'Kitchen!', hi: 'रसोई', kn: 'ಅಡುಗೆಮನೆ' },
   farm: { en: 'Farm!', hi: 'खेत', kn: 'ಹೊಲ' },
@@ -85,7 +86,7 @@ for (const k of FIND_KEYS) {
 WORDS.found = { en: 'Yay! You found it!', hi: 'शाबाश! मिल गया!', kn: 'ಭೇಷ್! ಸಿಕ್ಕಿತು!' };
 
 /** Order of words in the parent's Family voices list: the most-used first. */
-export const RECORD_ORDER = [...new Set(['cow', 'pig', 'sheep', 'hen', 'duck', 'puppy', 'kitten', 'frog', 'parrot', 'yummy', 'peekaboo',
+export const RECORD_ORDER = [...new Set(['cow', 'pig', 'sheep', 'hen', 'duck', 'puppy', 'kitten', 'frog', 'parrot', 'yummy', 'peekaboo', 'hide',
   'apple', 'sun', 'moon', 'rain', 'flower', 'butterfly', 'water', 'balloon', 'rainbow', 'barn', 'morning', 'night', 'sleep',
   'kitchen', 'farm', 'banana', 'carrot', 'milk', 'cheese', 'watermelon', 'grapes', 'broccoli', 'tomato', 'orange',
   'toast', 'cookie', 'soup', 'learn', 'tree', 'bread', 'kettle', 'toaster', 'clock', 'spoon', 'bowl', 'plate', 'table', 'pot', 'fridge', 'oven', 'bird', 'soupready', 'clean', 'cuckoo', 'hot',

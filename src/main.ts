@@ -28,6 +28,7 @@ import { loadFamily, decodeFamily } from './audio/family';
 import { initKitchen } from './scene/kitchen';
 import { initScenes } from './scene/scenes';
 import { initLearn } from './scene/learn';
+import { initHideSeek } from './scene/hideseek';
 
 preloadArt();
 initGround();
@@ -39,6 +40,7 @@ initFireflies();
 initLife();
 initFence();
 initFindIt();
+initHideSeek();
 initVisitors();
 initKitchen();
 initLearn();
@@ -66,3 +68,6 @@ $('splash').addEventListener('pointerdown', (e: PointerEvent) => {
 
 // Offline support: caches the whole game after the first visit and updates itself quietly.
 if ('serviceWorker' in navigator) registerSW({ immediate: true });
+
+// Testing aid: open with ?debug to start hide and seek from the browser console (lb.hide()).
+if (location.search.includes('debug')) import('./scene/hideseek').then(m => { (window as any).lb = { hide: m.startHide }; });

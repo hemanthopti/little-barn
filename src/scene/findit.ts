@@ -5,6 +5,7 @@ import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
 import { Animal } from './animal';
 import { sparkleAt, confetti } from './fx';
+import { startHide, hideActive } from './hideseek';
 
 /**
  * "Where is the …?" A gentle question every minute or so while the child is playing.
@@ -51,6 +52,7 @@ export function initFindIt() {
     const now = Date.now();
     const playing = state.started && !state.asleep && ($('panel').hidden && state.scene === 'farm') && state.findit;
     if (!playing) { active = null; return; }
+    if (hideActive()) { nextAt = now + rnd(...GAP_MS); return; }
     if (active) {
       const age = now - active.t0;
       if (age > GIVE_UP_MS) { active = null; nextAt = now + rnd(...GAP_MS); return; }
@@ -62,6 +64,7 @@ export function initFindIt() {
       return;
     }
     // Only ask while the child is actually playing (touched in the last 30 s)
-    if (now > nextAt && now - input.lastTouch < 30000) ask();
+    // Half the time it's hide and seek instead of a question
+    if (now > nextAt && now - input.lastTouch < 30000) { if (!(Math.random() < .5 && startHide())) ask(); }
   }, 500);
 }
