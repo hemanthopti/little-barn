@@ -64,6 +64,8 @@ export function playWord(key: string): boolean {
   if (!path) return false;
   const buf = buffers.get(path);
   if (buf) { playBuffer(buf); return true; }
-  load(path); // ready for next time; the device voice covers this one
-  return false;
+  // Not decoded yet (first few seconds): play it as soon as it is, rather than the robotic device voice.
+  const t0 = performance.now();
+  load(path).then(b => { if (b && performance.now() - t0 < 1500) playBuffer(b); });
+  return true;
 }

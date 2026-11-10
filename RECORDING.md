@@ -71,3 +71,16 @@ npm run build    # publishes to the play folder
 ```
 
 Re-run both whenever you add or replace a recording. To drop a clip, delete its file in `recordings/` and run them again.
+
+## AI voices for every word (no recording needed)
+
+`npm run voices` makes all words in English, Hindi and Kannada with Sarvam AI's Bulbul v3 voices
+(built in Bengaluru for Indian languages). About 3,200 characters in total, roughly ₹10; new accounts get free credits.
+
+1. Sign in at https://dashboard.sarvam.ai and copy your API key.
+2. PowerShell in the little-barn folder: `$env:SARVAM_API_KEY="your_key"`
+3. `npm run voices -- --dry` (shows the count), then `npm run voices`
+4. `npm run build`
+
+Don't like a voice? Listen at https://www.sarvam.ai/text-to-speech, then e.g. `npm run voices -- --lang kn --force --voice kn=kavya`.
+Fix one word: `npm run voices -- --lang hi --only cow`. A recording of your own in recordings/words/<lang>/ always wins over the AI one.

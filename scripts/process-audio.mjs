@@ -2,6 +2,7 @@
 //
 //   recordings/sfx/moo.m4a          -> public/audio/sfx/moo.mp3
 //   recordings/words/kn/cow.m4a     -> public/audio/words/kn/cow.mp3
+//   recordings/words/kn/cow.ai.wav  -> the same, made by `npm run voices` (a recording of your own wins)
 //
 // Each clip: silence trimmed at both ends, loudness-matched, mono 44.1 kHz MP3 at 96 kbps.
 // Run with:  npm run audio
@@ -41,8 +42,10 @@ const wordsDir = join(IN, 'words');
 for (const lang of existsSync(wordsDir) ? readdirSync(wordsDir) : []) {
   if (!statSync(join(wordsDir, lang)).isDirectory()) continue;
   manifest.words[lang] = {};
-  for (const f of files(join(wordsDir, lang))) {
-    const key = basename(f, extname(f));
+  // cow.ai.wav (made by npm run voices) and cow.m4a (your own recording) are both "cow"; yours wins.
+  const list = files(join(wordsDir, lang)).sort((a, b) => Number(!a.includes('.ai.')) - Number(!b.includes('.ai.')));
+  for (const f of list) {
+    const key = f.split('.')[0];
     if (convert(join(wordsDir, lang, f), `words/${lang}/${key}.mp3`)) { manifest.words[lang][key] = `words/${lang}/${key}.mp3`; console.log(`  ✓ ${lang.padEnd(6)} ${key}`); }
   }
 }
