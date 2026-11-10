@@ -15,7 +15,9 @@ export const SIZE: Record<string, [number, number]> = {
   'parrot-idle': [387, 520], 'parrot-happy': [555, 519], 'parrot-sleep': [501, 386],
   'pig-idle': [536, 520], 'pig-happy': [506, 506], 'pig-sleep': [550, 362],
   'puppy-idle': [472, 520], 'puppy-happy': [458, 518], 'puppy-sleep': [583, 353],
-  'sheep-idle': [472, 520], 'sheep-happy': [473, 507], 'sheep-sleep': [583, 376]
+  'sheep-idle': [472, 520], 'sheep-happy': [473, 507], 'sheep-sleep': [583, 376],
+  /* kitchen (art/k/) */
+  'k/stove': [636, 700], 'k/fridge': [410, 700], 'k/pot': [700, 463], 'k/fridge-open': [614, 700], 'k/banana': [341, 316], 'k/carrot': [279, 358], 'k/milk': [196, 348], 'k/cheese': [292, 286], 'k/watermelon': [362, 251], 'k/grapes': [301, 325], 'k/broccoli': [338, 339], 'k/tomato': [326, 330], 'k/orange': [322, 343], 'k/toaster': [310, 255], 'k/bread': [257, 247], 'k/toast': [261, 248], 'k/spoon': [284, 294], 'k/table': [336, 231], 'k/plate': [341, 232], 'k/bowl': [306, 225], 'k/cookies': [352, 208], 'k/cookie': [258, 259], 'k/clock': [298, 348], 'k/cuckoo': [245, 222], 'k/kettle': [317, 319]
 };
 
 export const url = (name: string) => `art/${name}.webp`;

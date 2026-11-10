@@ -25,6 +25,24 @@ export const WORDS: Record<string, Record<Lang, string>> = {
   night: { en: 'Good night!', hi: 'शुभ रात्रि', kn: 'ಶುಭ ರಾತ್ರಿ' },
   morning: { en: 'Good morning!', hi: 'सुप्रभात', kn: 'ಶುಭೋದಯ' },
   peekaboo: { en: 'Peekaboo!', hi: 'पीक-अ-बू!', kn: 'ಪೀಕ್-ಎ-ಬೂ!' },
+  kitchen: { en: 'Kitchen!', hi: 'रसोई', kn: 'ಅಡುಗೆಮನೆ' },
+  farm: { en: 'Farm!', hi: 'खेत', kn: 'ಹೊಲ' },
+  banana: { en: 'Banana!', hi: 'केला', kn: 'ಬಾಳೆಹಣ್ಣು' },
+  carrot: { en: 'Carrot!', hi: 'गाजर', kn: 'ಕ್ಯಾರೆಟ್' },
+  milk: { en: 'Milk!', hi: 'दूध', kn: 'ಹಾಲು' },
+  cheese: { en: 'Cheese!', hi: 'चीज़', kn: 'ಚೀಸ್' },
+  watermelon: { en: 'Watermelon!', hi: 'तरबूज़', kn: 'ಕಲ್ಲಂಗಡಿ' },
+  grapes: { en: 'Grapes!', hi: 'अंगूर', kn: 'ದ್ರಾಕ್ಷಿ' },
+  broccoli: { en: 'Broccoli!', hi: 'ब्रोकली', kn: 'ಬ್ರೊಕೊಲಿ' },
+  tomato: { en: 'Tomato!', hi: 'टमाटर', kn: 'ಟೊಮೆಟೊ' },
+  orange: { en: 'Orange!', hi: 'संतरा', kn: 'ಕಿತ್ತಳೆ' },
+  toast: { en: 'Toast!', hi: 'टोस्ट', kn: 'ಟೋಸ್ಟ್' },
+  cookie: { en: 'Cookie!', hi: 'बिस्कुट', kn: 'ಬಿಸ್ಕತ್ತು' },
+  soup: { en: 'Soup!', hi: 'सूप', kn: 'ಸೂಪ್' },
+  soupready: { en: 'Soup is ready!', hi: 'सूप तैयार है!', kn: 'ಸೂಪ್ ಸಿದ್ಧ!' },
+  clean: { en: 'All clean!', hi: 'साफ़ हो गया!', kn: 'ಸ್ವಚ್ಛ ಆಯಿತು!' },
+  cuckoo: { en: 'Cuckoo! Cuckoo!', hi: 'कू-कू! कू-कू!', kn: 'ಕುಕೂ! ಕುಕೂ!' },
+  hot: { en: 'Hot hot!', hi: 'गरम गरम!', kn: 'ಬಿಸಿ ಬಿಸಿ!' },
   sleep: { en: 'Time to sleep. Good night!', hi: 'सोने का समय। शुभ रात्रि', kn: 'ಮಲಗುವ ಸಮಯ. ಶುಭ ರಾತ್ರಿ' }
 };
 
@@ -47,6 +65,8 @@ WORDS.found = { en: 'Yay! You found it!', hi: 'शाबाश! मिल गय
 /** Order of words in the parent's Family voices list: the most-used first. */
 export const RECORD_ORDER = ['cow', 'pig', 'sheep', 'hen', 'duck', 'puppy', 'kitten', 'frog', 'parrot', 'yummy', 'peekaboo',
   'apple', 'sun', 'moon', 'rain', 'flower', 'butterfly', 'water', 'balloon', 'rainbow', 'barn', 'morning', 'night', 'sleep',
+  'kitchen', 'farm', 'banana', 'carrot', 'milk', 'cheese', 'watermelon', 'grapes', 'broccoli', 'tomato', 'orange',
+  'toast', 'cookie', 'soup', 'soupready', 'clean', 'cuckoo', 'hot',
   'found', ...FIND_KEYS.map(k => 'where-' + k)];
 
 export const LANGS: { id: Lang; label: string; name: string; tag: string }[] = [

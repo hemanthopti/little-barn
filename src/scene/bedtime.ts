@@ -6,6 +6,7 @@ import { setNight } from './sky';
 import { yard } from './yard';
 import { zzz } from './fx';
 import { allPose } from './animal';
+import { goScene } from './scenes';
 
 /**
  * Bedtime timer. When time is up the farm goes to sleep: night falls, a lullaby plays, the animals
@@ -27,6 +28,7 @@ export function minutesLeft() {
 
 export function goToSleep() {
   if (state.asleep) return;
+  goScene('farm', true); // bedtime always happens on the farm
   state.asleep = true;
   $('stage').classList.add('asleep');
   allPose('sleep');

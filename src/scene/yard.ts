@@ -24,7 +24,7 @@ export function initYard() {
 
   // Invite play after 20 s of no touches.
   setInterval(() => {
-    if (!state.started || state.asleep || !$('panel').hidden) return;
+    if (!state.started || state.asleep || !($('panel').hidden && state.scene === 'farm')) return;
     if (Date.now() - input.lastTouch > 20000) {
       input.lastTouch = Date.now();
       const a = pick(yard); a.bounce(); a.say(false);

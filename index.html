@@ -94,6 +94,27 @@
   <g id="fx" pointer-events="none"></g>
 </svg>
 
+
+<!-- Kitchen scene (second scene). Same 1600x900 units as the farm. -->
+<svg id="kitchen" class="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <defs>
+    <radialGradient id="kShadow"><stop offset="0" stop-color="#5A3410" stop-opacity=".35"/><stop offset="1" stop-color="#5A3410" stop-opacity="0"/></radialGradient>
+    <radialGradient id="kGlow"><stop offset="0" stop-color="#FFB347" stop-opacity=".95"/><stop offset="1" stop-color="#FF7A00" stop-opacity=".35"/></radialGradient>
+    <linearGradient id="kWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE9FF"/><stop offset="1" stop-color="#6CC6F2"/></linearGradient>
+  </defs>
+  <rect x="-2400" y="-2400" width="6400" height="3100" fill="#F3DDBA"/>
+  <rect x="-2400" y="699" width="6400" height="3000" fill="#D9853F"/>
+  <image href="art/k/kitchen-bg.webp" x="0" y="0" width="1600" height="900" preserveAspectRatio="none"/>
+  <g id="kBack"></g>
+  <g id="kWaterL" pointer-events="none"></g>
+  <g id="kMid"></g>
+  <g id="kFront"></g>
+  <g id="kfx" pointer-events="none"></g>
+</svg>
+
+<button id="sceneBtn" aria-label="Go to the other room" hidden></button>
+<div id="fade"></div>
+
 <button id="gear" aria-label="Parent settings (hold 3 seconds)">⚙<svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/></svg></button>
 
 <div id="panel" hidden>

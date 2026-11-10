@@ -14,7 +14,9 @@ export const state = {
   asleep: false,
   tips: false,
   /** "Where is the …?" questions */
-  findit: true
+  findit: true,
+  /** Which room is showing (not saved: play always starts on the farm). */
+  scene: 'farm' as 'farm' | 'kitchen'
 };
 
 const KEY = 'littleBarn';

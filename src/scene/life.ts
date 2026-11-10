@@ -162,7 +162,7 @@ export function initLife() {
   let sortT = 0;
   tickers.add(dt => {
     now += dt;
-    if (!state.started || !$('panel').hidden) return;
+    if (!state.started || !($('panel').hidden && state.scene === 'farm')) return;
     if (state.asleep) { brains.forEach(b => { if (b.mode !== 'idle') { stopWalking(b.a); b.mode = 'idle'; } b.until = now + 1000; }); return; }
     brains.forEach(b => step(b, dt));
     if ((sortT += dt) > 200) { sortT = 0; sortActors(); }
@@ -170,7 +170,7 @@ export function initLife() {
 
   // Ambient: a butterfly drifts by now and then, the parrot fidgets, a lazy squawk now and again
   setInterval(() => {
-    if (!state.started || state.asleep || !$('panel').hidden) return;
+    if (!state.started || state.asleep || !($('panel').hidden && state.scene === 'farm')) return;
     const r = Math.random();
     if (r < .45) { const f = flowerSpots(); if (f.length) { const t = pick(f); butterfly(t.x, t.y - 40); } }
     else if (r < .7) { const p = objs.parrot as Animal; if (p?.free()) p.bounce(); }
@@ -178,7 +178,7 @@ export function initLife() {
   }, 7000);
   // Rarely, a yard animal makes its noise unprompted (quietly reminds the child it's there)
   setInterval(() => {
-    if (!state.started || state.asleep || !$('panel').hidden || Math.random() < .5) return;
+    if (!state.started || state.asleep || !($('panel').hidden && state.scene === 'farm') || Math.random() < .5) return;
     const b = pick(brains); if (b.a.free() && b.mode !== 'nap') sfx(({ cow: 'moo', pig: 'oink', puppy: 'woof', kitten: 'meow', duck: 'quack' } as any)[b.a.kind]);
   }, 25000);
 }

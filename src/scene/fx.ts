@@ -5,7 +5,7 @@ import { sfx } from '../audio/clips';
 import { HEART } from '../art/props';
 
 /** Particle effects. All live in the #fx layer on top of everything and ignore touches. */
-const layer = () => $('fx') as SVGGElement;
+const layer = () => $(state.scene === 'kitchen' ? 'kfx' : 'fx') as SVGGElement;
 
 function fx(html: string, x: number, y: number) {
   const g = el('g', { transform: `translate(${x},${y})`, opacity: 0 }, layer());

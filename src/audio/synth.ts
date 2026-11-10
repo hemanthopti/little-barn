@@ -122,6 +122,14 @@ export const SYNTH: Record<string, () => number> = {
   content() { tone({ type: 'triangle', f0: 230, f1: 200, dur: .9, vol: .07, att: .2, sus: .5, vib: [5, 6] }); return .9; },
   /** Confetti celebration. */
   yay() { [523, 659, 784, 1047, 1319].forEach((f, i) => tone({ f0: f, dur: .35, vol: .13, delay: i * .07 })); noise({ dur: .4, filter: ['highpass', 5000], vol: .05, delay: .3 }); return .7; },
+  /** Kitchen sounds */
+  ding() { tone({ f0: 1568, dur: 1.2, vol: .16, att: .002 }); tone({ f0: 3136, dur: .5, vol: .04, att: .002 }); return 1; },
+  whistle() { tone({ f0: 1700, f1: 2100, dur: 1.4, vol: .07, att: .25, sus: .8, vib: [7, 40] }); noise({ dur: 1.4, filter: ['bandpass', 2400, 4], vol: .05, att: .25, sus: .8 }); return 1.4; },
+  cuckoo() { [0, .55].forEach(d => { tone({ f0: 784, dur: .25, vol: .18, delay: d }); tone({ f0: 622, dur: .35, vol: .18, delay: d + .22 }); }); return 1.1; },
+  water() { noise({ dur: 2.8, filter: ['bandpass', 1500, .7], vol: .16, att: .15, sus: .85 }); noise({ dur: 2.8, filter: ['highpass', 4000], vol: .04, att: .15, sus: .85 }); return 2.8; },
+  bubble() { for (let i = 0; i < 4; i++) tone({ f0: rnd(300, 500), f1: rnd(800, 1200), dur: .07, vol: .12, delay: i * rnd(.08, .16) }); return .5; },
+  swish() { noise({ dur: .3, filter: ['bandpass', 1800, 1.5], vol: .14, att: .08 }); return .3; },
+  click() { tone({ type: 'square', f0: 900, dur: .03, vol: .08 }); tone({ type: 'square', f0: 600, dur: .03, vol: .06, delay: .07 }); return .1; },
   rain() { noise({ dur: 2.6, filter: ['bandpass', 2600, .6], vol: .08, att: .3, sus: .8 }); return .5; }
 };
 

@@ -49,7 +49,7 @@ export function initFindIt() {
   tapListeners.push(id => { if (active && (id === active.k || (active.k === 'barn' && BARN_PARTS.includes(id)))) found(); });
   setInterval(() => {
     const now = Date.now();
-    const playing = state.started && !state.asleep && $('panel').hidden && state.findit;
+    const playing = state.started && !state.asleep && ($('panel').hidden && state.scene === 'farm') && state.findit;
     if (!playing) { active = null; return; }
     if (active) {
       const age = now - active.t0;
