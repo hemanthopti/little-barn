@@ -38,7 +38,7 @@ Every tappable thing has a `data-id` in the SVG and an entry in `objs` (`src/cor
 
 ## Parent features
 
-Hold ⚙ for 3 s. "Where is the…?" questions on/off, family voices (recorded in-game, stored in IndexedDB, trimmed and loudness-matched on load), two family photos
+Hold ⚙ for half a second. "Where is the…?" questions on/off, family voices (recorded in-game, stored in IndexedDB, trimmed and loudness-matched on load), two family photos
 (barn windows, tap for peekaboo), bedtime timer (night, lullaby, sleeping animals, taps only twinkle until "Wake up"),
 co-play tips for the parent, voice mirror, language, time of day, visitor, full screen. Nothing leaves the device.
 

@@ -10,14 +10,14 @@ import { VISITORS, showVisitor } from '../scene/visitors';
 import { photoUrl, setPhoto, removePhoto } from '../scene/photos';
 import { minutesLeft, wakeUp, restartTimer } from '../scene/bedtime';
 
-const HOLD_MS = 3000;
+const HOLD_MS = 500;
 const MAX_REC_MS = 3000;
 const TIMERS = [0, 10, 15, 20];
 
 /** The recording in progress, if any, so the list can be redrawn safely mid-recording. */
 let recording: { key: string; stop: () => void } | null = null;
 
-/** Parent gate (hold the gear 3 s) and settings panel. Nothing here is reachable by a quick tap. */
+/** Parent gate (hold the gear half a second) and settings panel. Nothing here is reachable by a quick tap. */
 export function initPanel() {
   const gear = $('gear'), panel = $('panel');
   let hold = 0;

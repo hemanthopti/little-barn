@@ -20,7 +20,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#6EC6FF;touch-action:n
   #gear svg{position:absolute;inset:0;width:52px;height:52px}
   #gear circle{fill:none;stroke:#3A2E2A;stroke-width:4;stroke-dasharray:151;stroke-dashoffset:151;
     transition:stroke-dashoffset .2s;transform:rotate(-90deg);transform-origin:50% 50%}
-  #gear.fill circle{stroke-dashoffset:0;transition:stroke-dashoffset 3s linear}
+  #gear.fill circle{stroke-dashoffset:0;transition:stroke-dashoffset .5s linear}
 
   #panel{position:fixed;inset:0;background:rgba(15,25,60,.55);z-index:20;display:flex;align-items:center;justify-content:center;touch-action:auto}
   #panel[hidden]{display:none}
