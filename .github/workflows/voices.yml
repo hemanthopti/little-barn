@@ -8,7 +8,7 @@ on:
         description: 'Extra options, e.g. --lang kn --force --voice kn=kavya   or   --only cow,pig'
         required: false
         default: ''
-permissions: { contents: write }
+permissions: { contents: write, actions: write }
 jobs:
   voices:
     runs-on: ubuntu-latest
@@ -26,3 +26,6 @@ jobs:
           git add recordings public/audio
           git diff --cached --quiet || git commit -m "Voices: npm run voices ${{ github.event.inputs.options }}"
           git push
+      - name: Publish (pushes made by a workflow don't start the deploy by themselves)
+        run: gh workflow run deploy.yml --ref main
+        env: { GH_TOKEN: '${{ github.token }}' }
