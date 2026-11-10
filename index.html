@@ -28,7 +28,17 @@
   <!-- sky and far hills -->
   <rect x="-2400" y="-2400" width="6400" height="3000" fill="#3BB0F3"/>
   <image href="art/bg-hills.webp" x="-200" y="-327" width="2000" height="1126" preserveAspectRatio="none"/>
-  <g id="lRainbow"></g>
+  <g id="lScenery" pointer-events="none">
+    <defs>
+      <linearGradient id="hillFar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9D8A6"/><stop offset="1" stop-color="#86C17F"/></linearGradient>
+      <linearGradient id="hillNear" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#93CF6A"/><stop offset="1" stop-color="#6DB24E"/></linearGradient>
+      <filter id="haze"><feGaussianBlur stdDeviation="1.2"/></filter>
+    </defs>
+    <path d="M-200,610 C40,470 300,430 560,465 C760,492 880,400 1080,392 C1300,384 1480,450 1800,440 L1800,640 L-200,640 Z" fill="url(#hillFar)" opacity=".95" filter="url(#haze)"/>
+    <g id="farTrees" opacity=".8"></g>
+    <path d="M-200,640 C180,520 420,505 700,528 C930,548 1080,486 1330,496 C1560,505 1700,540 1800,530 L1800,660 L-200,660 Z" fill="url(#hillNear)"/>
+    <g id="nearTrees"></g>
+  </g>
   <g id="lClouds"></g>
   <g id="lBalloon"></g>
 
@@ -128,7 +138,7 @@
   <g id="lfx" pointer-events="none"></g>
 </svg>
 
-<button id="sceneBtn" aria-label="Go to the other room" hidden></button>
+<div id="rooms" hidden></div>
 <div id="fade"></div>
 
 <button id="gear" aria-label="Parent settings (hold half a second)">⚙<svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/></svg></button>

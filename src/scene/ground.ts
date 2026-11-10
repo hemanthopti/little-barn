@@ -55,7 +55,16 @@ function decor(id: string, name: string, x: number, y: number, w: number, onTap:
   } };
 }
 
+
+/** Little trees dotted over the far hills behind the fence. */
+function initScenery() {
+  const t = (x: number, y: number, h: number) => { const [w] = fit('tree', undefined, h); return img('tree', x, y, w, h); };
+  $('farTrees').innerHTML = [[600, 474, 46], [655, 470, 38], [905, 432, 44], [960, 416, 52], [1015, 402, 40], [1160, 400, 46]].map(([x, y, h]) => t(x, y, h)).join('');
+  $('nearTrees').innerHTML = [[640, 532, 64], [1040, 512, 70], [1100, 506, 56]].map(([x, y, h]) => t(x, y, h)).join('');
+}
+
 export function initGround() {
+  initScenery();
   objs.pond = {
     tap(p) {
       sfx('splash'); ripple(p.x, p.y);

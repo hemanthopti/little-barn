@@ -7,19 +7,33 @@ import { url } from '../art/sprites';
 import { kitchenEnter, kitchenLeave } from './kitchen';
 import { learnEnter, learnLeave } from './learn';
 
+/**
+ * Rooms. Round picture buttons in the corner lead to every other room; tapping one fades across.
+ * Farm systems (wandering, find game, idle invites) check state.scene and rest while another room shows.
+ */
 type Room = 'farm' | 'kitchen' | 'learn';
 const ROOMS: Room[] = ['farm', 'kitchen', 'learn'];
 const SVG: Record<Room, string> = { farm: 'stage', kitchen: 'kitchen', learn: 'learn' };
-const next = (): Room => ROOMS[(ROOMS.indexOf(state.scene) + 1) % ROOMS.length];
-
-/**
- * Rooms. The round button in the corner shows a picture of the other room; tapping it fades across.
- * Farm systems (wandering, find game, idle invites) check state.scene and rest while the kitchen shows.
- */
+const THUMB: Record<Room, string> = { farm: 'farm-thumb', kitchen: 'k/kitchen-bg', learn: 'learn-thumb' };
+const LABEL: Record<Room, string> = { farm: 'Go to the farm', kitchen: 'Go to the kitchen', learn: 'Go to the picture cards' };
 let switching = false;
 
-const THUMB: Record<Room, string> = { farm: 'bg-hills', kitchen: 'k/kitchen-bg', learn: 'learn-thumb' };
-const thumb = () => { $('sceneBtn').style.backgroundImage = `url(${url(THUMB[next()])})`; };
+/** One button for each room you are not in. */
+function drawButtons() {
+  const box = $('rooms') as HTMLDivElement;
+  box.innerHTML = '';
+  ROOMS.filter(r => r !== state.scene).forEach(r => {
+    const b = document.createElement('button');
+    b.style.backgroundImage = `url(${url(THUMB[r])})`;
+    b.setAttribute('aria-label', LABEL[r]);
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (!state.started || state.asleep) return;
+      goScene(r);
+    });
+    box.appendChild(b);
+  });
+}
 
 export function goScene(s: Room, instant = false) {
   if (s === state.scene || switching) return;
@@ -30,7 +44,7 @@ export function goScene(s: Room, instant = false) {
     ROOMS.forEach(r => { $(SVG[r]).style.display = r === s ? '' : 'none'; });
     if (s === 'kitchen') kitchenEnter();
     if (s === 'learn') learnEnter();
-    thumb(); changed();
+    drawButtons(); changed();
   };
   if (instant) { swap(); return; }
   switching = true; sfx('swish');
@@ -43,13 +57,7 @@ export function goScene(s: Room, instant = false) {
 }
 
 export function initScenes() {
-  const b = $('sceneBtn') as HTMLButtonElement;
-  thumb();
-  b.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    if (!state.started || state.asleep) return;
-    goScene(next());
-  });
-  const show = () => { b.hidden = !state.started || state.asleep; };
+  drawButtons();
+  const show = () => { ($('rooms') as HTMLDivElement).hidden = !state.started || state.asleep; };
   bus.addEventListener('change', show); show();
 }

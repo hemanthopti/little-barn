@@ -49,25 +49,6 @@ export const VISITORS: Visitor[] = [
       };
       return () => { tickers.delete(tick); g.remove(); delete objs.balloon; };
     }
-  },
-  {
-    name: 'Rainbow',
-    make() {
-      const g = el('g', { 'data-id': 'rainbow', opacity: .9 }, $('lRainbow'));
-      const [rw, rh] = fit('rainbow', 780);
-      g.innerHTML = img('rainbow', 820, 600, rw, rh);
-      objs.rainbow = {
-        tap() {
-          sfx('chimeUp');
-          for (let i = 0; i < 5; i++) {
-            const a = Math.PI * (0.15 + 0.7 * Math.random());
-            setTimeout(() => sparkleAt(820 - Math.cos(a) * 330, 600 - Math.sin(a) * 280, 5, true), i * 120);
-          }
-          setTimeout(() => speak('rainbow'), 300);
-        }
-      };
-      return () => { g.remove(); delete objs.rainbow; };
-    }
   }
 ];
 
