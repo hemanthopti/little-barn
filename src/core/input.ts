@@ -1,5 +1,6 @@
 import { state } from './state';
 import { AC } from '../audio/synth';
+import { toScene as screenToScene } from './view';
 
 export type Pt = { x: number; y: number };
 export interface Drag { start(p0: Pt, p: Pt): boolean | void; move(p: Pt): void; end(p: Pt): void }
@@ -18,10 +19,7 @@ const HOLD_MS = 450;   // a finger resting this long on something with a hold be
 const lastTap: Record<string, number> = {};
 
 export function initInput(svg: SVGSVGElement, onEmptyTap: (p: Pt) => void, onTrail: (p: Pt) => void) {
-  const toScene = (e: PointerEvent): Pt => {
-    const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
-    return p.matrixTransform(svg.getScreenCTM()!.inverse());
-  };
+  const toScene = (e: PointerEvent): Pt => screenToScene(e.clientX, e.clientY);
   type Active = { o?: Interactive; id?: string; s: Pt; lp: Pt; moved: boolean; drag: boolean; holding: boolean; timer: number };
   const ptrs = new Map<number, Active>();
 

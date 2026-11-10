@@ -13,6 +13,7 @@
 <title>Little Barn</title>
 </head>
 <body>
+<div id="app">
 
 
 <svg id="stage" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
@@ -175,7 +176,8 @@
     <p class="note" id="micNote"></p>
     <div class="row"><span>Time of day</span><button class="btn" id="bNight">Make it night</button></div>
     <div class="row"><span>Today's visitor: <b id="visName"></b></span><button class="btn" id="bVis">Next visitor</button></div>
-    <div class="row"><span>Full screen</span><button class="btn" id="bFull">Go full screen</button></div>
+    <div class="row" id="fullRow"><span>Full screen</span><button class="btn" id="bFull">Go full screen</button></div>
+    <p class="note" id="fullNote" hidden>This browser can't go full screen. For full screen, tap the Share button, then <b>Add to Home Screen</b>, and open Little Barn from its icon.</p>
     <p class="note">To stop your child leaving the game, turn on Guided Access (iPhone: Settings › Accessibility) or Screen pinning (Android: Settings › Security).</p>
     <button class="big" id="bClose">Back to the barn</button>
   </div>
@@ -190,6 +192,7 @@
   <div class="hint">Parents: hold ⚙ for half a second for settings</div>
 </div>
 
+</div>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

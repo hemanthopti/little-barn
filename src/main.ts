@@ -4,6 +4,7 @@ import './styles.css';
 import { registerSW } from 'virtual:pwa-register';
 
 import { $ } from './core/util';
+import { initView } from './core/view';
 import { state, changed } from './core/state';
 import { initInput, input } from './core/input';
 import { AC } from './audio/synth';
@@ -30,6 +31,7 @@ import { initScenes } from './scene/scenes';
 import { initLearn } from './scene/learn';
 import { initHideSeek } from './scene/hideseek';
 
+initView();
 preloadArt();
 initGround();
 initBarn();

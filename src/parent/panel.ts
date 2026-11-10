@@ -3,7 +3,7 @@ import { state, save, bus, changed, Lang } from '../core/state';
 import { LANGS, WORDS, RECORD_ORDER } from '../content/words';
 import { hasSpeech, voiceFor, voicesKnown, speak } from '../audio/speech';
 import { preloadClips } from '../audio/clips';
-import { getMic, recordClip } from '../audio/mic';
+import { getMic, recordClip, stopMic } from '../audio/mic';
 import { hasFamily, familyCount, saveFamily, deleteFamily, previewFamily } from '../audio/family';
 import { setNight } from '../scene/sky';
 import { VISITORS, showVisitor } from '../scene/visitors';
@@ -47,7 +47,15 @@ export function initPanel() {
   $('tMirror').addEventListener('click', () => { state.mirror = !state.mirror; state.micBlocked = false; save(); changed(); });
   $('bNight').addEventListener('click', () => setNight(!state.night));
   $('bVis').addEventListener('click', () => showVisitor((state.visitor + 1) % VISITORS.length));
-  $('bFull').addEventListener('click', goFullscreen);
+  $('bFull').addEventListener('click', () => { goFullscreen(); setTimeout(fullLabel, 400); });
+  const fullLabel = () => {
+    const standalone = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || (navigator as any).standalone;
+    if (standalone) { $('fullRow').hidden = true; return; }
+    if (!canFullscreen()) { $('bFull').hidden = true; $('fullNote').hidden = false; return; }
+    $('bFull').textContent = isFull() ? 'Exit full screen' : 'Go full screen';
+  };
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, fullLabel));
+  fullLabel();
   $('bClose').addEventListener('click', () => { recording?.stop(); panel.hidden = true; changed(); });
 
   $('famList').addEventListener('click', onFamilyClick);
@@ -64,10 +72,17 @@ export function initPanel() {
   render();
 }
 
+const doc: any = document;
+/** iPhone browsers have no full screen for web pages; there the only way is Add to Home Screen. */
+export const canFullscreen = () => !!(doc.fullscreenEnabled || doc.webkitFullscreenEnabled);
+const isFull = () => !!(doc.fullscreenElement || doc.webkitFullscreenElement);
 export function goFullscreen() {
   const d: any = document.documentElement;
-  const f = d.requestFullscreen || d.webkitRequestFullscreen;
-  if (f) { try { const r = f.call(d); r?.catch?.(() => { }); } catch { } }
+  try {
+    if (isFull()) { const x = doc.exitFullscreen || doc.webkitExitFullscreen; x?.call(doc)?.catch?.(() => { }); return; }
+    const f = d.requestFullscreen || d.webkitRequestFullscreen;
+    if (f) { const r = f.call(d, { navigationUI: 'hide' }); r?.catch?.(() => { }); }
+  } catch { }
 }
 
 async function onFamilyClick(e: MouseEvent) {
@@ -85,6 +100,7 @@ async function onFamilyClick(e: MouseEvent) {
   render();
   const blob = await r.done;
   recording = null;
+  setTimeout(() => { if (!recording) stopMic(); }, 5000); // free the mic so sounds play at full volume again
   if (blob.size > 0) await saveFamily(lang, key, blob);
   render();
   previewFamily(lang, key);

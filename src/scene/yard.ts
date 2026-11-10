@@ -3,7 +3,8 @@ import { state } from '../core/state';
 import { input } from '../core/input';
 import { Animal, registerFeeders } from './animal';
 import { sparkleAt, pulseRing } from './fx';
-import { getMic, recordClip } from '../audio/mic';
+import { getMic, recordClip, stopMic } from '../audio/mic';
+import { AC, master } from '../audio/synth';
 
 export let yard: Animal[] = [];
 
@@ -33,7 +34,11 @@ export function initYard() {
   }, 1000);
 }
 
-/** The parrot listens for 2.5 s and repeats the child's voice, sped up. Audio never leaves the device. */
+/**
+ * The parrot listens for 2.5 s and repeats the child's voice, faster and higher. Audio never leaves the device.
+ * Played through Web Audio (already unlocked by the first tap): iPhones block <audio> that starts
+ * seconds after a tap, which made the parrot silent there.
+ */
 async function voiceMirror(p: Animal) {
   if (p.busy) return;
   if (!state.mirror) { p.bounce(); p.say(); return; }
@@ -41,13 +46,16 @@ async function voiceMirror(p: Animal) {
   const mic = await getMic();
   if (!mic) { p.busy = false; p.bounce(); p.say(); return; }
   const h = p.head(); pulseRing(h.x, h.y, 2500);
-  const blob = await recordClip(mic, 2500).done;
-  const url = URL.createObjectURL(blob);
-  const au: any = new Audio(url);
-  au.preservesPitch = false; au.mozPreservesPitch = false; au.webkitPreservesPitch = false;
-  au.playbackRate = 1.6;
+  let blob: Blob;
+  try { blob = await recordClip(mic, 2500).done; } finally { stopMic(); }
+  const a = AC();
+  if (!a || !master || !state.sound) { p.busy = false; return; }
+  let buf: AudioBuffer;
+  try { buf = await a.decodeAudioData(await blob.arrayBuffer()); } catch { p.busy = false; p.bounce(); p.say(); return; }
+  const src = a.createBufferSource(), g = a.createGain();
+  src.buffer = buf; src.playbackRate.value = 1.55; g.gain.value = 1.8;
+  src.connect(g); g.connect(master);
   const wig = setInterval(() => p.bounce(), 800);
-  const done = () => { clearInterval(wig); p.busy = false; URL.revokeObjectURL(url); };
-  au.onended = done;
-  au.play().catch(done);
+  src.onended = () => { clearInterval(wig); p.busy = false; };
+  p.bounce(); src.start();
 }

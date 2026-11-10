@@ -2,6 +2,8 @@
 html,body{margin:0;height:100%;overflow:hidden;background:#6EC6FF;touch-action:none;
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
     font-family:"Baloo 2",system-ui,sans-serif;color:#3A2E2A}
+  #app{position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;transform:translateZ(0)}
+  body.rot #app{transform-origin:0 0;transform:rotate(90deg) translateY(-100%)}
   #stage,#kitchen,#learn{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible}
   .idle{animation:breathe 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
   @keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.975)}}
@@ -44,7 +46,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#6EC6FF;touch-action:n
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
   #splash .hint{margin-top:16px;font-size:16px;color:#2c4a1e;background:rgba(255,255,255,.7);padding:4px 14px;border-radius:999px;text-align:center}
   #rot{display:none}
-  @media (orientation:portrait){#rot{display:block}}
+  body.rot #rot{display:block}
 .btn,.seg button,.big{font-family:inherit}
 
 /* v0.3: parent features */

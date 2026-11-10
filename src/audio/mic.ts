@@ -14,6 +14,9 @@ export async function getMic(): Promise<MediaStream | null> {
   }
 }
 
+/** Let go of the microphone. While it's open, iPhones play every other sound quietly through the earpiece. */
+export function stopMic() { stream?.getTracks().forEach(t => t.stop()); stream = null; }
+
 /** Record up to maxMs; resolves with the audio. Call the returned stop() to end early. */
 export function recordClip(s: MediaStream, maxMs: number) {
   const rec = new MediaRecorder(s), chunks: Blob[] = [];
