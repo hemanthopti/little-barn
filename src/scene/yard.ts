@@ -11,6 +11,7 @@ export function initYard() {
   const layer = $('lActors');
   // kind, id, x, y (between the feet), standing height
   yard = [
+    new Animal('cow', 'cow', 1000, 712, 190, layer, true),
     new Animal('pig', 'pig', 470, 872, 165, layer, true),
     new Animal('duck', 'duck', 785, 805, 115, layer, true),
     new Animal('puppy', 'puppy', 1150, 885, 165, layer, true),

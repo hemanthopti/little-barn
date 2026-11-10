@@ -25,6 +25,7 @@ src/core/           util, animation engine, state + settings, touch/drag routing
 src/audio/          synth (fallback sounds), clips (recorded audio), speech (spoken words)
 src/art/            sprite table (sprites.ts) and the cast (animals.ts)
 public/art/         painted art (WebP) made with the AI art kit
+public/anim/        animated sprite sheets made from AI video clips (Art Kit step 4); listed in ANIM in src/art/sprites.ts
 src/content/        words per language
 src/scene/          findit.ts ("Where is the …?" game), fence.ts (musical fence), life.ts (animal behaviours: wander, sniff, eat apples, nap, hop; duck paddles), barn, tree + apples, yard animals + parrot, pond + flowers, sky + night, daily visitors, effects
 src/parent/         parent gate, settings panel, co-play tips

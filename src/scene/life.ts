@@ -22,7 +22,7 @@ interface Brain {
 }
 
 const YARD = { x0: 90, x1: 1510, y0: 705, y1: 870 };
-const SPEED: Record<string, number> = { pig: 55, puppy: 75, kitten: 70, duck: 32 };
+const SPEED: Record<string, number> = { cow: 52, pig: 55, puppy: 75, kitten: 70, duck: 32 };
 const brains: Brain[] = [];
 let now = 0;
 
@@ -57,8 +57,10 @@ function landSpot(b: Brain) {
 function goTo(b: Brain, x: number, y: number, goal: Goal) {
   b.tx = x; b.ty = y; b.goal = goal; b.mode = 'walk';
   b.a.setFacing(x < b.a.x ? -1 : 1);
+  if (b.a.hasClip('walk')) b.a.playClip('walk', true);
 }
-function rest(b: Brain, ms: number) { b.mode = 'idle'; b.until = now + ms; b.a.setWalk(0, 0); }
+function stopWalking(a: Animal) { a.setWalk(0, 0); if (a.hasClip('walk') && !a.anim) a.stopClip(); }
+function rest(b: Brain, ms: number) { b.mode = 'idle'; b.until = now + ms; stopWalking(b.a); }
 
 /** Decide what to do next. */
 function think(b: Brain) {
@@ -98,7 +100,7 @@ function think(b: Brain) {
 
 function arrive(b: Brain) {
   const a = b.a;
-  a.setWalk(0, 0);
+  stopWalking(a);
   if (b.goal === 'apple' && b.apple && objs[b.apple.id]) {
     a.setFacing(b.apple.x < a.x ? -1 : 1);
     eat(a, b.apple, true); b.apple = undefined; rest(b, rnd(2500, 4000)); return;
@@ -115,7 +117,7 @@ function arrive(b: Brain) {
 function step(b: Brain, dt: number) {
   const a = b.a;
   if (!a.free()) {                                                    // child is playing with it: stop
-    if (b.mode === 'walk' || b.mode === 'sniff') { a.setWalk(0, 0); rest(b, rnd(1500, 3000)); }
+    if (b.mode === 'walk' || b.mode === 'sniff') rest(b, rnd(1500, 3000));
     if (b.mode === 'nap' && a.anim) rest(b, 2000);
     return;
   }
@@ -125,7 +127,7 @@ function step(b: Brain, dt: number) {
     a.x += dx / d * v; a.y += dy / d * v; a.place();
     b.phase += dt * (b.swims ? .005 : .014);
     if (b.swims) a.setWalk(Math.sin(b.phase) * 2, Math.sin(b.phase) * 3);
-    else a.setWalk(Math.abs(Math.sin(b.phase)) * a.h * .05, Math.sin(b.phase) * 4);
+    else if (!a.hasClip('walk')) a.setWalk(Math.abs(Math.sin(b.phase)) * a.h * .05, Math.sin(b.phase) * 4);
     if (b.goal === 'apple' && b.apple && !objs[b.apple.id]) { b.apple = undefined; rest(b, 1000); }  // someone else ate it
     return;
   }
@@ -161,7 +163,7 @@ export function initLife() {
   tickers.add(dt => {
     now += dt;
     if (!state.started || !$('panel').hidden) return;
-    if (state.asleep) { brains.forEach(b => { if (b.mode !== 'idle') { b.a.setWalk(0, 0); b.mode = 'idle'; } b.until = now + 1000; }); return; }
+    if (state.asleep) { brains.forEach(b => { if (b.mode !== 'idle') { stopWalking(b.a); b.mode = 'idle'; } b.until = now + 1000; }); return; }
     brains.forEach(b => step(b, dt));
     if ((sortT += dt) > 200) { sortT = 0; sortActors(); }
   });
@@ -177,6 +179,6 @@ export function initLife() {
   // Rarely, a yard animal makes its noise unprompted (quietly reminds the child it's there)
   setInterval(() => {
     if (!state.started || state.asleep || !$('panel').hidden || Math.random() < .5) return;
-    const b = pick(brains); if (b.a.free() && b.mode !== 'nap') sfx(({ pig: 'oink', puppy: 'woof', kitten: 'meow', duck: 'quack' } as any)[b.a.kind]);
+    const b = pick(brains); if (b.a.free() && b.mode !== 'nap') sfx(({ cow: 'moo', pig: 'oink', puppy: 'woof', kitten: 'meow', duck: 'quack' } as any)[b.a.kind]);
   }, 25000);
 }

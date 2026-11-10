@@ -20,6 +20,18 @@ export const SIZE: Record<string, [number, number]> = {
 
 export const url = (name: string) => `art/${name}.webp`;
 
+/**
+ * Animated clips (sprite sheets made from AI video, see Art Kit step 4).
+ * cw/ch = frame size in px; ax/ay = point between the feet inside a frame; stand = standing height in px.
+ */
+export interface Clip { src: string; cols: number; n: number; cw: number; ch: number; fps: number; ax: number; ay: number; stand: number }
+export const ANIM: Record<string, Partial<Record<'walk' | 'happy' | 'idle' | 'eat' | 'sleep', Clip>>> = {
+  cow: {
+    walk: { src: 'anim/cow-walk.webp', cols: 8, n: 16, cw: 377, ch: 326, fps: 15, ax: 183.3, ay: 322.5, stand: 300 },
+    happy: { src: 'anim/cow-happy.webp', cols: 8, n: 22, cw: 380, ch: 432, fps: 15, ax: 188.6, ay: 428.9, stand: 300 }
+  }
+};
+
 /** Size of a piece drawn at a given width or height (scene units), keeping its proportions. */
 export function fit(name: string, w?: number, h?: number): [number, number] {
   const [pw, ph] = SIZE[name];
@@ -36,4 +48,5 @@ export function img(name: string, x: number, y: number, w: number, h: number, an
 /** Preload every image so the first tap on anything is instant. */
 export function preloadArt() {
   for (const n of Object.keys(SIZE)) { const i = new Image(); i.decoding = 'async'; i.src = url(n); }
+  for (const k in ANIM) for (const c of Object.values(ANIM[k])) { const i = new Image(); i.decoding = 'async'; i.src = c!.src; }
 }

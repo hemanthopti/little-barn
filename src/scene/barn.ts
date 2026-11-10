@@ -43,7 +43,7 @@ function makeDoor(id: string, panels: [string, number][], layer: Element, pool: 
 
 export function initBarn() {
   const doors = [
-    makeDoor('door', [['doorL', 240.8], ['doorR', 403]], $('doorIn'), ['cow', 'sheep', 'cow', 'puppy', 'sheep'], { x: 322, yShow: 646, yHide: 830, h: 138 }),
+    makeDoor('door', [['doorL', 240.8], ['doorR', 403]], $('doorIn'), ['sheep', 'pig', 'sheep', 'puppy', 'hen'], { x: 322, yShow: 646, yHide: 830, h: 138 }),
     makeDoor('loft', [['loftL', 274.9], ['loftR', 374.7]], $('loftIn'), ['hen', 'kitten', 'hen', 'parrot'], { x: 325, yShow: 455, yHide: 545, h: 74 })
   ];
   registerFeeders(() => doors.map(d => d.animalNow()));

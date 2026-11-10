@@ -30,7 +30,7 @@ export const WORDS: Record<string, Record<Lang, string>> = {
 
 /** Plain names, used to build the find-game questions. */
 const NAME: Record<string, Record<Lang, string>> = {
-  pig: { en: 'pig', hi: 'सूअर', kn: 'ಹಂದಿ' }, duck: { en: 'duck', hi: 'बत्तख', kn: 'ಬಾತುಕೋಳಿ' },
+  cow: { en: 'cow', hi: 'गाय', kn: 'ಹಸು' }, pig: { en: 'pig', hi: 'सूअर', kn: 'ಹಂದಿ' }, duck: { en: 'duck', hi: 'बत्तख', kn: 'ಬಾತುಕೋಳಿ' },
   puppy: { en: 'puppy', hi: 'कुत्ता', kn: 'ನಾಯಿ' }, kitten: { en: 'kitty', hi: 'बिल्ली', kn: 'ಬೆಕ್ಕು' },
   parrot: { en: 'parrot', hi: 'तोता', kn: 'ಗಿಣಿ' }, frog: { en: 'frog', hi: 'मेंढक', kn: 'ಕಪ್ಪೆ' },
   sun: { en: 'sun', hi: 'सूरज', kn: 'ಸೂರ್ಯ' }, moon: { en: 'moon', hi: 'चाँद', kn: 'ಚಂದ್ರ' },

@@ -28,7 +28,7 @@ let active: { k: string; t0: number; lastHint: number } | null = null;
 let nextAt = 0, lastK = '';
 
 function ask() {
-  const keys = ['pig', 'duck', 'puppy', 'kitten', 'parrot', 'frog', 'sun', 'moon', 'tree', 'barn'].filter(k => k !== lastK && where(k));
+  const keys = ['cow', 'pig', 'duck', 'puppy', 'kitten', 'parrot', 'frog', 'sun', 'moon', 'tree', 'barn'].filter(k => k !== lastK && where(k));
   if (!keys.length) return;
   const k = pick(keys);
   active = { k, t0: Date.now(), lastHint: 0 }; lastK = k;

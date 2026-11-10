@@ -5,7 +5,7 @@ import { state } from '../core/state';
 import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
 import { VOICE, Kind, Pose } from '../art/animals';
-import { SIZE, url } from '../art/sprites';
+import { SIZE, url, ANIM, Clip } from '../art/sprites';
 import { hearts, sparkleAt, ripple } from './fx';
 
 /** Ground area animals can be dragged around in (scene units). */
@@ -32,6 +32,10 @@ export class Animal implements Interactive {
   drag?: Drag;
   hold?: Hold;
   private petting = false;
+  /** Animated clip currently playing (walk, happy …), drawn instead of the still image. */
+  private clipSvg: SVGSVGElement | null = null;
+  private clipName = '';
+  private clipTick: ((dt: number) => void) | null = null;
   private off = { x: 0, y: 0 };
 
   constructor(public kind: Kind, public id: string, public x: number, public y: number, public h: number,
@@ -43,12 +47,14 @@ export class Animal implements Interactive {
     this.g.innerHTML = (withShadow ? `<ellipse cx="0" cy="-2" rx="${(w * .4).toFixed(1)}" ry="${(h * .07).toFixed(1)}" fill="url(#shadowG)"/>` : '') +
       `<g class="react"><g class="walk"><g class="face"><g class="idle" style="animation-delay:-${(Math.random() * 3).toFixed(2)}s">` +
       `<rect x="${(-w * .55).toFixed(1)}" y="${(-h * 1.05).toFixed(1)}" width="${(w * 1.1).toFixed(1)}" height="${(h * 1.1).toFixed(1)}" fill="transparent"/>` +
-      `<image preserveAspectRatio="none"/></g></g></g></g>`;
+      `<image preserveAspectRatio="none"/>` +
+      `<svg class="clip" overflow="hidden" preserveAspectRatio="none" style="display:none"><image preserveAspectRatio="none"/></svg></g></g></g></g>`;
     this.shadow = withShadow ? this.g.querySelector('ellipse') : null;
     this.r = this.g.querySelector('.react') as SVGGElement;
     this.image = this.g.querySelector('image') as SVGImageElement;
     this.walkG = this.g.querySelector('.walk') as SVGGElement;
     this.faceG = this.g.querySelector('.face') as SVGGElement;
+    this.clipSvg = this.g.querySelector('svg.clip') as SVGSVGElement;
     this.setPose(state.asleep ? 'sleep' : 'idle');
     this.place();
     objs[id] = this;
@@ -57,7 +63,7 @@ export class Animal implements Interactive {
     this.hold = {
       start: () => {
         if (state.asleep || this.anim || this.busy) return;
-        this.petting = true; this.busy = true; this.setPose('happy'); this.setWalk(0, 0);
+        this.petting = true; this.busy = true; this.stopClip(); this.setPose('happy'); this.setWalk(0, 0);
         let t = 0, heartT = 0, soundT = 0;
         const tick = (dt: number) => {
           if (!this.petting) { tickers.delete(tick); return; }
@@ -79,7 +85,7 @@ export class Animal implements Interactive {
       start: p0 => {
         if (this.anim || state.asleep) return false;
         this.off = { x: this.x - p0.x, y: this.y - p0.y };
-        this.dragging = true; this.setWalk(0, 0);
+        this.dragging = true; this.setWalk(0, 0); this.stopClip();
         layer.appendChild(this.g); sfx('boing'); this.setPose('happy');
       },
       move: p => {
@@ -94,6 +100,43 @@ export class Animal implements Interactive {
         this.bounce(); setTimeout(() => this.say(false), 150);
       }
     };
+  }
+
+  hasClip(name: string) { return !!ANIM[this.kind]?.[name as 'walk']; }
+
+  /**
+   * Play an animated clip in place of the still image. Loops until stopClip(), or plays once and calls done.
+   * Each frame is shown by moving the nested <svg>'s viewBox over the sprite sheet.
+   */
+  playClip(name: 'walk' | 'happy' | 'idle' | 'eat' | 'sleep', loop: boolean, done?: () => void) {
+    const c: Clip | undefined = ANIM[this.kind]?.[name];
+    if (!c || !this.clipSvg) { done?.(); return; }
+    if (this.clipName === name && loop) return;
+    this.stopClip();
+    const k = this.h / c.stand, svg = this.clipSvg, im = svg.firstElementChild as SVGImageElement;
+    const rows = Math.ceil(c.n / c.cols);
+    im.setAttribute('href', c.src);
+    im.setAttribute('width', String(c.cw * c.cols)); im.setAttribute('height', String(c.ch * rows));
+    svg.setAttribute('x', (-c.ax * k).toFixed(1)); svg.setAttribute('y', (-c.ay * k).toFixed(1));
+    svg.setAttribute('width', (c.cw * k).toFixed(1)); svg.setAttribute('height', (c.ch * k).toFixed(1));
+    const show = (f: number) => svg.setAttribute('viewBox', `${(f % c.cols) * c.cw} ${Math.floor(f / c.cols) * c.ch} ${c.cw} ${c.ch}`);
+    show(0);
+    svg.style.display = ''; this.image.style.display = 'none';
+    this.clipName = name;
+    let t = 0;
+    const tick = (dt: number) => {
+      t += dt;
+      let f = Math.floor(t * c.fps / 1000);
+      if (f >= c.n) { if (loop) f %= c.n; else { this.stopClip(); done?.(); return; } }
+      show(f);
+    };
+    this.clipTick = tick; tickers.add(tick);
+  }
+  stopClip() {
+    if (this.clipTick) tickers.delete(this.clipTick);
+    this.clipTick = null; this.clipName = '';
+    if (this.clipSvg) this.clipSvg.style.display = 'none';
+    this.image.style.display = '';
   }
 
   setPose(p: Pose) {
@@ -126,6 +169,11 @@ export class Animal implements Interactive {
   bounce(spin = false, big = false) {
     if (this.anim) return;
     this.anim = true;
+    if (!state.asleep && this.hasClip('happy')) {   // a real jump-for-joy animation
+      this.setWalk(0, 0);
+      this.playClip('happy', false, () => { this.anim = false; this.rest(); });
+      return;
+    }
     if (!state.asleep) this.setPose('happy');
     const H = this.h * (big ? .9 : .5);
     tween(big ? 900 : 700, t => {
