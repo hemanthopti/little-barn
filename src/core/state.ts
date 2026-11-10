@@ -7,7 +7,12 @@ export const state = {
   night: false,
   visitor: 0,
   micBlocked: false,
-  started: false
+  started: false,
+  /** Bedtime timer in minutes (0 = off) and when the current play session started. */
+  timer: 0,
+  playStart: 0,
+  asleep: false,
+  tips: false
 };
 
 const KEY = 'littleBarn';
@@ -16,10 +21,12 @@ try {
   if (['en', 'hi', 'kn'].includes(saved.lang)) state.lang = saved.lang;
   if (typeof saved.sound === 'boolean') state.sound = saved.sound;
   if (typeof saved.mirror === 'boolean') state.mirror = saved.mirror;
+  if ([0, 10, 15, 20].includes(saved.timer)) state.timer = saved.timer;
+  if (typeof saved.tips === 'boolean') state.tips = saved.tips;
 } catch { /* storage unavailable: defaults are fine */ }
 
 export function save() {
-  try { localStorage.setItem(KEY, JSON.stringify({ lang: state.lang, sound: state.sound, mirror: state.mirror })); } catch { }
+  try { localStorage.setItem(KEY, JSON.stringify({ lang: state.lang, sound: state.sound, mirror: state.mirror, timer: state.timer, tips: state.tips })); } catch { }
 }
 
 /** Anything that shows state (the parent panel) listens here. */

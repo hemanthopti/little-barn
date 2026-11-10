@@ -1,6 +1,7 @@
 import { state, changed, Lang } from '../core/state';
 import { WORDS, LANGS } from '../content/words';
 import { playWord } from './clips';
+import { playFamily } from './family';
 
 export const hasSpeech = 'speechSynthesis' in window;
 let voices: SpeechSynthesisVoice[] = [];
@@ -15,10 +16,10 @@ export function voiceFor(l: Lang) {
 }
 export const voicesKnown = () => voices.length > 0;
 
-/** Say a word: recorded clip first, then the device voice, then English if the language has no voice. */
+/** Say a word: family recording first, then a shipped clip, then the device voice, then English if the language has no voice. */
 export function speak(key: string) {
   if (!state.sound) return;
-  if (playWord(key)) return;
+  if (playFamily(key) || playWord(key)) return;
   const w = WORDS[key]; if (!w || !hasSpeech) return;
   let l = state.lang, v = voiceFor(l);
   if (!v && l !== 'en' && voices.length) { l = 'en'; v = voiceFor('en'); }

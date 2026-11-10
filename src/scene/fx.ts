@@ -107,3 +107,13 @@ export function pulseRing(x: number, y: number, ms: number) {
   const g = fx(`<circle r="40" fill="none" stroke="#FFD23F" stroke-width="6"/>`, x, y); fade(g, 1);
   tween(ms, t => g.setAttribute('transform', `translate(${x},${y}) scale(${1 + .25 * Math.sin(t * 30)})`), () => g.remove());
 }
+
+/** A sleepy "z" drifting up from a head. */
+export function zzz(x: number, y: number) {
+  const g = fx(`<text font-family="Baloo 2, sans-serif" font-weight="800" font-size="40" fill="#fff" stroke="#3A2E2A" stroke-width="2">z</text>`, x, y);
+  const dx = rnd(20, 50), s0 = rnd(.8, 1.3);
+  tween(2600, t => {
+    g.setAttribute('transform', `translate(${x + dx * t + Math.sin(t * 6) * 8},${y - 120 * t}) scale(${s0 * (.6 + t * .6)})`);
+    fade(g, t < .2 ? t * 5 : 1 - (t - .2) / .8);
+  }, () => g.remove());
+}

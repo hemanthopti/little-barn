@@ -23,8 +23,14 @@ export const WORDS: Record<string, Record<Lang, string>> = {
   rainbow: { en: 'Rainbow!', hi: 'इंद्रधनुष', kn: 'ಕಾಮನಬಿಲ್ಲು' },
   barn: { en: 'Barn!', hi: 'खलिहान', kn: 'ಕೊಟ್ಟಿಗೆ' },
   night: { en: 'Good night!', hi: 'शुभ रात्रि', kn: 'ಶುಭ ರಾತ್ರಿ' },
-  morning: { en: 'Good morning!', hi: 'सुप्रभात', kn: 'ಶುಭೋದಯ' }
+  morning: { en: 'Good morning!', hi: 'सुप्रभात', kn: 'ಶುಭೋದಯ' },
+  peekaboo: { en: 'Peekaboo!', hi: 'पीक-अ-बू!', kn: 'ಪೀಕ್-ಎ-ಬೂ!' },
+  sleep: { en: 'Time to sleep. Good night!', hi: 'सोने का समय। शुभ रात्रि', kn: 'ಮಲಗುವ ಸಮಯ. ಶುಭ ರಾತ್ರಿ' }
 };
+
+/** Order of words in the parent's Family voices list: the most-used first. */
+export const RECORD_ORDER = ['cow', 'pig', 'sheep', 'hen', 'duck', 'puppy', 'kitten', 'frog', 'parrot', 'yummy', 'peekaboo',
+  'apple', 'sun', 'moon', 'rain', 'flower', 'butterfly', 'water', 'balloon', 'rainbow', 'barn', 'morning', 'night', 'sleep'];
 
 export const LANGS: { id: Lang; label: string; name: string; tag: string }[] = [
   { id: 'en', label: 'English', name: 'English', tag: 'en-IN' },

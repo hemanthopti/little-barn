@@ -23,6 +23,8 @@
       <stop offset="0" stop-color="#8ED863"/><stop offset="1" stop-color="#5DB33E"/></linearGradient>
     <radialGradient id="sunG"><stop offset="0" stop-color="#FFF6B0"/><stop offset="1" stop-color="#FFD23F"/></radialGradient>
     <clipPath id="clipDoor"><rect x="272" y="472" width="156" height="158"/></clipPath>
+    <clipPath id="clipWin0"><rect x="178" y="374" width="56" height="56" rx="3"/></clipPath>
+    <clipPath id="clipWin1"><rect x="466" y="374" width="56" height="56" rx="3"/></clipPath>
     <clipPath id="clipLoft"><rect x="307" y="232" width="86" height="76"/></clipPath>
   </defs>
 
@@ -47,11 +49,16 @@
       <line x1="200" y1="345" x2="200" y2="628"/><line x1="240" y1="345" x2="240" y2="628"/>
       <line x1="460" y1="345" x2="460" y2="628"/><line x1="500" y1="345" x2="500" y2="628"/>
     </g>
-    <g fill="#FFE9B0" stroke="#3A2E2A" stroke-width="4">
-      <rect x="183" y="380" width="46" height="46" rx="4"/><rect x="471" y="380" width="46" height="46" rx="4"/>
+    <g id="win0" data-id="win0">
+      <rect x="176" y="372" width="60" height="60" rx="5" fill="#FFE9B0" stroke="#3A2E2A" stroke-width="4"/>
+      <g id="winPhoto0" clip-path="url(#clipWin0)"></g>
+      <g id="winCross0" stroke="#3A2E2A" stroke-width="3"><line x1="206" y1="372" x2="206" y2="432"/><line x1="176" y1="402" x2="236" y2="402"/></g>
     </g>
-    <g stroke="#3A2E2A" stroke-width="3"><line x1="206" y1="380" x2="206" y2="426"/><line x1="183" y1="403" x2="229" y2="403"/>
-      <line x1="494" y1="380" x2="494" y2="426"/><line x1="471" y1="403" x2="517" y2="403"/></g>
+    <g id="win1" data-id="win1">
+      <rect x="464" y="372" width="60" height="60" rx="5" fill="#FFE9B0" stroke="#3A2E2A" stroke-width="4"/>
+      <g id="winPhoto1" clip-path="url(#clipWin1)"></g>
+      <g id="winCross1" stroke="#3A2E2A" stroke-width="3"><line x1="494" y1="372" x2="494" y2="432"/><line x1="464" y1="402" x2="524" y2="402"/></g>
+    </g>
     <polygon points="125,348 350,162 575,348" fill="#B83A2A" stroke="#3A2E2A" stroke-width="5" stroke-linejoin="round"/>
     <polyline points="145,338 350,178 555,338" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
     <!-- loft -->
@@ -97,6 +104,7 @@
   <g id="lVisitor"></g>
   <g id="lFlowers"></g>
   <g id="lActors"></g>
+  <g id="lPeek"></g>
   <rect id="shade" x="-2400" y="-2400" width="6400" height="6400" fill="#0B1640" opacity="0" pointer-events="none"/>
   <g id="lStars" opacity="0" pointer-events="none"></g>
 
@@ -126,10 +134,29 @@
 <div id="panel" hidden>
   <div class="card">
     <h2>Parent settings</h2>
-    <div class="row"><span>Language</span><div class="seg" id="lang">
-      <button data-v="en">English</button><button data-v="hi">हिंदी</button><button data-v="kn">ಕನ್ನಡ</button></div></div>
+
+    <div class="row"><span>Language</span><div class="seg" id="lang"></div></div>
     <p class="note" id="voiceNote"></p>
     <div class="row"><span>Sound</span><button class="tog" id="tSound" aria-label="Sound"></button></div>
+
+    <details id="famVoices">
+      <summary>Family voices <small id="famCount"></small></summary>
+      <p class="note">Record yourself saying each word. The game uses your voice instead of the built-in one. Tap ● to record (up to 3 seconds), tap again to stop. Recordings stay on this device.</p>
+      <div id="famList"></div>
+      <p class="note" id="famNote"></p>
+    </details>
+
+    <details id="famPhotos">
+      <summary>Family photos</summary>
+      <p class="note">Faces appear in the barn windows. Your child taps a window and the face pops out: peekaboo! Photos stay on this device.</p>
+      <div class="photos">
+        <div class="ph"><img id="ph0" alt=""><label class="btn">Choose<input type="file" accept="image/*" id="phIn0" hidden></label><button class="btn" id="phDel0">Remove</button></div>
+        <div class="ph"><img id="ph1" alt=""><label class="btn">Choose<input type="file" accept="image/*" id="phIn1" hidden></label><button class="btn" id="phDel1">Remove</button></div>
+      </div>
+    </details>
+
+    <div class="row"><span>Bedtime timer<br><small id="timerNote">The animals fall asleep when time is up</small></span><div class="seg" id="timer"></div></div>
+    <div class="row"><span>Tips for you while you play together</span><button class="tog" id="tTips" aria-label="Parent tips"></button></div>
     <div class="row"><span>Voice mirror<br><small>The parrot repeats what your child says</small></span><button class="tog" id="tMirror" aria-label="Voice mirror"></button></div>
     <p class="note" id="micNote"></p>
     <div class="row"><span>Time of day</span><button class="btn" id="bNight">Make it night</button></div>
@@ -139,6 +166,8 @@
     <button class="big" id="bClose">Back to the barn</button>
   </div>
 </div>
+
+<div id="tip" aria-hidden="true"></div>
 
 <div id="splash">
   <div class="title">Little Barn</div>

@@ -26,6 +26,7 @@ export function initInput(svg: SVGSVGElement, onEmptyTap: (p: Pt) => void, onTra
     if (!state.started) return;
     AC(); input.lastTouch = Date.now();
     const p = toScene(e);
+    if (state.asleep) { onTrail(p); return; } // bedtime: only a quiet twinkle
     const t = (e.target as Element).closest?.('[data-id]');
     const id = t?.getAttribute('data-id') || undefined;
     ptrs.set(e.pointerId, { o: id ? objs[id] : undefined, id, s: p, lp: p, moved: false, drag: false });

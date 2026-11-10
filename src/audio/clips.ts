@@ -42,7 +42,7 @@ export function preloadClips() {
   Object.values(manifest.words?.[state.lang] || {}).forEach(load);
 }
 
-function playBuffer(buf: AudioBuffer, vol = 1) {
+export function playBuffer(buf: AudioBuffer, vol = 1) {
   const a = AC(); if (!a || !master) return;
   const s = a.createBufferSource(), g = a.createGain();
   s.buffer = buf; g.gain.value = vol; s.connect(g); g.connect(master); s.start();
@@ -58,12 +58,12 @@ export function sfx(name: string): number {
   return SYNTH[name]?.() ?? 0;
 }
 
-/** Play a recorded word if one exists for the current language. Returns false if none. */
+/** Play a recorded word for the current language if it is loaded. Returns false so the caller can fall back. */
 export function playWord(key: string): boolean {
   const path = manifest.words?.[state.lang]?.[key];
   if (!path) return false;
   const buf = buffers.get(path);
   if (buf) { playBuffer(buf); return true; }
-  load(path).then(b => b && playBuffer(b));
-  return true;
+  load(path); // ready for next time; the device voice covers this one
+  return false;
 }

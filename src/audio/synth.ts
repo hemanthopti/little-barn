@@ -106,5 +106,15 @@ export const SYNTH: Record<string, () => number> = {
   rustle() { noise({ dur: .45, filter: ['highpass', 2500], vol: .14, att: .05 }); return .3; },
   thud() { tone({ f0: 170, f1: 60, dur: .15, vol: .35 }); return .15; },
   creak() { tone({ type: 'sawtooth', f0: 110, f1: 170, dur: .35, vol: .07, filter: ['lowpass', 500, 8], vib: [25, 15] }); return .3; },
+  /** Original eight-bar lullaby for bedtime: soft sine notes over a low hum. */
+  lullaby() {
+    const N: Record<string, number> = { C4: 262, D4: 294, E4: 330, F4: 349, G4: 392, A4: 440, C5: 523 };
+    const tune = ['E4', 'G4', 'E4', 'G4', 'A4', 'G4', 'E4', '-', 'D4', 'F4', 'D4', 'F4', 'G4', 'F4', 'D4', '-',
+      'E4', 'G4', 'C5', 'A4', 'G4', 'E4', 'D4', '-', 'E4', 'D4', 'C4', '-', '-', '-', '-', '-'];
+    const beat = .42;
+    tune.forEach((n, i) => { if (n !== '-') tone({ f0: N[n], dur: beat * 1.9, vol: .1, att: .06, delay: i * beat }); });
+    [0, 8, 16, 24].forEach(b => tone({ type: 'triangle', f0: b === 8 ? 98 : 131, dur: beat * 8, vol: .05, att: .4, sus: .6, delay: b * beat }));
+    return tune.length * beat;
+  },
   rain() { noise({ dur: 2.6, filter: ['bandpass', 2600, .6], vol: .08, att: .3, sus: .8 }); return .5; }
 };

@@ -1,11 +1,11 @@
 import { $, pick } from '../core/util';
-import { state, changed } from '../core/state';
+import { state } from '../core/state';
 import { input } from '../core/input';
 import { Animal, registerFeeders } from './animal';
 import { sparkleAt, pulseRing } from './fx';
+import { getMic, recordClip } from '../audio/mic';
 
 export let yard: Animal[] = [];
-let micStream: MediaStream | null = null;
 
 export function initYard() {
   const layer = $('lActors');
@@ -22,7 +22,7 @@ export function initYard() {
 
   // Invite play after 20 s of no touches.
   setInterval(() => {
-    if (!state.started || !$('panel').hidden) return;
+    if (!state.started || state.asleep || !$('panel').hidden) return;
     if (Date.now() - input.lastTouch > 20000) {
       input.lastTouch = Date.now();
       const a = pick(yard); a.bounce(); a.say(false);
@@ -36,25 +36,16 @@ async function voiceMirror(p: Animal) {
   if (p.busy) return;
   if (!state.mirror) { p.bounce(); p.say(); return; }
   p.busy = true;
-  try {
-    if (!micStream) micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const rec = new MediaRecorder(micStream), chunks: Blob[] = [];
-    rec.ondataavailable = e => chunks.push(e.data);
-    const h = p.head(); pulseRing(h.x, h.y, 2500);
-    rec.onstop = () => {
-      const url = URL.createObjectURL(new Blob(chunks, { type: rec.mimeType }));
-      const au: any = new Audio(url);
-      au.preservesPitch = false; au.mozPreservesPitch = false; au.webkitPreservesPitch = false;
-      au.playbackRate = 1.6;
-      const wig = setInterval(() => p.bounce(), 700);
-      const done = () => { clearInterval(wig); p.busy = false; URL.revokeObjectURL(url); };
-      au.onended = done;
-      au.play().catch(done);
-    };
-    rec.start();
-    setTimeout(() => rec.state !== 'inactive' && rec.stop(), 2500);
-  } catch {
-    state.micBlocked = true; changed();
-    p.busy = false; p.bounce(); p.say();
-  }
+  const mic = await getMic();
+  if (!mic) { p.busy = false; p.bounce(); p.say(); return; }
+  const h = p.head(); pulseRing(h.x, h.y, 2500);
+  const blob = await recordClip(mic, 2500).done;
+  const url = URL.createObjectURL(blob);
+  const au: any = new Audio(url);
+  au.preservesPitch = false; au.mozPreservesPitch = false; au.webkitPreservesPitch = false;
+  au.playbackRate = 1.6;
+  const wig = setInterval(() => p.bounce(), 700);
+  const done = () => { clearInterval(wig); p.busy = false; URL.revokeObjectURL(url); };
+  au.onended = done;
+  au.play().catch(done);
 }
