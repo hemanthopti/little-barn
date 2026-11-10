@@ -47,13 +47,35 @@ export const WORDS: Record<string, Record<Lang, string>> = {
 };
 
 /** Plain names, used to build the find-game questions. */
-const NAME: Record<string, Record<Lang, string>> = {
+export const NAME: Record<string, Record<Lang, string>> = {
   cow: { en: 'cow', hi: 'गाय', kn: 'ಹಸು' }, pig: { en: 'pig', hi: 'सूअर', kn: 'ಹಂದಿ' }, duck: { en: 'duck', hi: 'बत्तख', kn: 'ಬಾತುಕೋಳಿ' },
   puppy: { en: 'puppy', hi: 'कुत्ता', kn: 'ನಾಯಿ' }, kitten: { en: 'kitty', hi: 'बिल्ली', kn: 'ಬೆಕ್ಕು' },
   parrot: { en: 'parrot', hi: 'तोता', kn: 'ಗಿಣಿ' }, frog: { en: 'frog', hi: 'मेंढक', kn: 'ಕಪ್ಪೆ' },
   sun: { en: 'sun', hi: 'सूरज', kn: 'ಸೂರ್ಯ' }, moon: { en: 'moon', hi: 'चाँद', kn: 'ಚಂದ್ರ' },
   tree: { en: 'tree', hi: 'पेड़', kn: 'ಮರ' }, barn: { en: 'barn', hi: 'खलिहान', kn: 'ಕೊಟ್ಟಿಗೆ' }
 };
+
+/** Names for the Learn room (also give "Where is the …?" questions). */
+const MORE: [string, string, string, string][] = [
+  ['sheep', 'sheep', 'भेड़', 'ಕುರಿ'], ['hen', 'hen', 'मुर्गी', 'ಕೋಳಿ'],
+  ['apple', 'apple', 'सेब', 'ಸೇಬು'], ['banana', 'banana', 'केला', 'ಬಾಳೆಹಣ್ಣು'], ['orange', 'orange', 'संतरा', 'ಕಿತ್ತಳೆ'],
+  ['grapes', 'grapes', 'अंगूर', 'ದ್ರಾಕ್ಷಿ'], ['watermelon', 'watermelon', 'तरबूज़', 'ಕಲ್ಲಂಗಡಿ'], ['tomato', 'tomato', 'टमाटर', 'ಟೊಮೆಟೊ'],
+  ['carrot', 'carrot', 'गाजर', 'ಕ್ಯಾರೆಟ್'], ['broccoli', 'broccoli', 'ब्रोकली', 'ಬ್ರೊಕೊಲಿ'], ['milk', 'milk', 'दूध', 'ಹಾಲು'],
+  ['cheese', 'cheese', 'चीज़', 'ಚೀಸ್'], ['bread', 'bread', 'ब्रेड', 'ಬ್ರೆಡ್'], ['toast', 'toast', 'टोस्ट', 'ಟೋಸ್ಟ್'], ['cookie', 'cookie', 'बिस्कुट', 'ಬಿಸ್ಕತ್ತು'],
+  ['kettle', 'kettle', 'केतली', 'ಕೆಟಲ್'], ['toaster', 'toaster', 'टोस्टर', 'ಟೋಸ್ಟರ್'], ['clock', 'clock', 'घड़ी', 'ಗಡಿಯಾರ'],
+  ['spoon', 'spoon', 'चम्मच', 'ಚಮಚ'], ['bowl', 'bowl', 'कटोरी', 'ಬಟ್ಟಲು'], ['plate', 'plate', 'थाली', 'ತಟ್ಟೆ'],
+  ['table', 'table', 'मेज़', 'ಮೇಜು'], ['pot', 'pot', 'पतीला', 'ಪಾತ್ರೆ'], ['fridge', 'fridge', 'फ्रिज', 'ಫ್ರಿಡ್ಜ್'],
+  ['oven', 'oven', 'ओवन', 'ಓವನ್'], ['bird', 'bird', 'चिड़िया', 'ಹಕ್ಕಿ'], ['balloon', 'balloon', 'गुब्बारा', 'ಬಲೂನು'],
+  ['flower', 'flower', 'फूल', 'ಹೂವು']
+];
+for (const [k, en, hi, kn] of MORE) {
+  NAME[k] = { en, hi, kn };
+  if (!WORDS[k]) WORDS[k] = { en: en[0].toUpperCase() + en.slice(1) + '!', hi, kn };
+}
+if (!WORDS.tree) WORDS.tree = { en: 'Tree!', hi: 'पेड़', kn: 'ಮರ' };
+WORDS.learn = { en: "Let's learn!", hi: 'चलो सीखें!', kn: 'ಕಲಿಯೋಣ!' };
+WORDS.again = { en: 'Try again!', hi: 'फिर से!', kn: 'ಮತ್ತೊಮ್ಮೆ!' };
+
 /** Things the find game can ask about. */
 export const FIND_KEYS = Object.keys(NAME);
 for (const k of FIND_KEYS) {
@@ -63,11 +85,11 @@ for (const k of FIND_KEYS) {
 WORDS.found = { en: 'Yay! You found it!', hi: 'शाबाश! मिल गया!', kn: 'ಭೇಷ್! ಸಿಕ್ಕಿತು!' };
 
 /** Order of words in the parent's Family voices list: the most-used first. */
-export const RECORD_ORDER = ['cow', 'pig', 'sheep', 'hen', 'duck', 'puppy', 'kitten', 'frog', 'parrot', 'yummy', 'peekaboo',
+export const RECORD_ORDER = [...new Set(['cow', 'pig', 'sheep', 'hen', 'duck', 'puppy', 'kitten', 'frog', 'parrot', 'yummy', 'peekaboo',
   'apple', 'sun', 'moon', 'rain', 'flower', 'butterfly', 'water', 'balloon', 'rainbow', 'barn', 'morning', 'night', 'sleep',
   'kitchen', 'farm', 'banana', 'carrot', 'milk', 'cheese', 'watermelon', 'grapes', 'broccoli', 'tomato', 'orange',
-  'toast', 'cookie', 'soup', 'soupready', 'clean', 'cuckoo', 'hot',
-  'found', ...FIND_KEYS.map(k => 'where-' + k)];
+  'toast', 'cookie', 'soup', 'learn', 'tree', 'bread', 'kettle', 'toaster', 'clock', 'spoon', 'bowl', 'plate', 'table', 'pot', 'fridge', 'oven', 'bird', 'soupready', 'clean', 'cuckoo', 'hot',
+  'found', ...FIND_KEYS.map(k => 'where-' + k)])];
 
 export const LANGS: { id: Lang; label: string; name: string; tag: string }[] = [
   { id: 'en', label: 'English', name: 'English', tag: 'en-IN' },

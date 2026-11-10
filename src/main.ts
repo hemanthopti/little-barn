@@ -27,6 +27,7 @@ import { initTips } from './parent/tips';
 import { loadFamily, decodeFamily } from './audio/family';
 import { initKitchen } from './scene/kitchen';
 import { initScenes } from './scene/scenes';
+import { initLearn } from './scene/learn';
 
 preloadArt();
 initGround();
@@ -40,6 +41,7 @@ initFence();
 initFindIt();
 initVisitors();
 initKitchen();
+initLearn();
 initScenes();
 initPhotos();
 initBedtime();
@@ -48,6 +50,7 @@ initPanel();
 loadFamily();
 initInput($('stage'), p => burst(p.x, p.y), p => trail(p.x, p.y));
 initInput($('kitchen'), p => burst(p.x, p.y), p => trail(p.x, p.y));
+initInput($('learn'), p => burst(p.x, p.y), p => trail(p.x, p.y));
 loadManifest();
 
 // Splash: the first tap unlocks audio (required on iOS) and starts play.

@@ -2,7 +2,7 @@
 html,body{margin:0;height:100%;overflow:hidden;background:#6EC6FF;touch-action:none;
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
     font-family:"Baloo 2",system-ui,sans-serif;color:#3A2E2A}
-  #stage,#kitchen{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible}
+  #stage,#kitchen,#learn{position:fixed;inset:0;width:100%;height:100%;display:block;overflow:visible}
   .idle{animation:breathe 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
   @keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.975)}}
   .eye{transform-box:fill-box;transform-origin:center;animation:blink 4.6s infinite;animation-delay:var(--d,0s)}

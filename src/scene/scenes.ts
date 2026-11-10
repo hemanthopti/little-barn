@@ -5,6 +5,12 @@ import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
 import { url } from '../art/sprites';
 import { kitchenEnter, kitchenLeave } from './kitchen';
+import { learnEnter, learnLeave } from './learn';
+
+type Room = 'farm' | 'kitchen' | 'learn';
+const ROOMS: Room[] = ['farm', 'kitchen', 'learn'];
+const SVG: Record<Room, string> = { farm: 'stage', kitchen: 'kitchen', learn: 'learn' };
+const next = (): Room => ROOMS[(ROOMS.indexOf(state.scene) + 1) % ROOMS.length];
 
 /**
  * Rooms. The round button in the corner shows a picture of the other room; tapping it fades across.
@@ -12,16 +18,18 @@ import { kitchenEnter, kitchenLeave } from './kitchen';
  */
 let switching = false;
 
-const thumb = () => { $('sceneBtn').style.backgroundImage = `url(${url(state.scene === 'farm' ? 'k/kitchen-bg' : 'bg-hills')})`; };
+const THUMB: Record<Room, string> = { farm: 'bg-hills', kitchen: 'k/kitchen-bg', learn: 'learn-thumb' };
+const thumb = () => { $('sceneBtn').style.backgroundImage = `url(${url(THUMB[next()])})`; };
 
-export function goScene(s: 'farm' | 'kitchen', instant = false) {
+export function goScene(s: Room, instant = false) {
   if (s === state.scene || switching) return;
   const swap = () => {
     if (state.scene === 'kitchen') kitchenLeave();
+    if (state.scene === 'learn') learnLeave();
     state.scene = s;
-    $('stage').style.display = s === 'farm' ? '' : 'none';
-    $('kitchen').style.display = s === 'kitchen' ? '' : 'none';
+    ROOMS.forEach(r => { $(SVG[r]).style.display = r === s ? '' : 'none'; });
     if (s === 'kitchen') kitchenEnter();
+    if (s === 'learn') learnEnter();
     thumb(); changed();
   };
   if (instant) { swap(); return; }
@@ -40,7 +48,7 @@ export function initScenes() {
   b.addEventListener('pointerdown', e => {
     e.preventDefault();
     if (!state.started || state.asleep) return;
-    goScene(state.scene === 'farm' ? 'kitchen' : 'farm');
+    goScene(next());
   });
   const show = () => { b.hidden = !state.started || state.asleep; };
   bus.addEventListener('change', show); show();
