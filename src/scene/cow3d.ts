@@ -64,7 +64,7 @@ function shader(gl:WebGL2RenderingContext,type:number,source:string){const s=gl.
 export class Cow3D{
  private gl:WebGL2RenderingContext;private program:WebGLProgram;private vao:WebGLVertexArrayObject;private num=0;private locations:Record<string,WebGLUniformLocation>={};private running=false;private frame=0;private time=0;private last=0;private action:Activity|null=null;private actionEnd=0;
  private drops:{p:Vec;v:Vec;c:Vec;ttl:number;size:number}[]=[];
- milk=0;clean=0;onLost?:()=>void;
+ milk=0;clean=0;onLost?:()=>void;onFrame?:()=>void;private frameConfirmed=false;
  constructor(private canvas:HTMLCanvasElement){
   const gl=canvas.getContext('webgl2',{alpha:true,antialias:true});if(!gl)throw Error('WebGL2 not supported');this.gl=gl;
   const p=gl.createProgram()!;gl.attachShader(p,shader(gl,gl.VERTEX_SHADER,vs));gl.attachShader(p,shader(gl,gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error('WebGL link failed');this.program=p;
@@ -116,5 +116,14 @@ export class Cow3D{
  this.draw([1.77,.48,1.05],[.39,.43,.37],[.63,.77,.85]);this.draw([1.77,.86,1.05],[.4,.055,.38],[.91,.96,1]);if(this.milk)this.draw([1.77,.89,1.05],[.31,.04,.3],[1,1,.94]);
  if(a==='apple'){const f=1-Math.max(0,(this.actionEnd-now))/1600;this.draw([-1.9+1.2*f,1.05+.9*f,1.35],[.19*(1-.65*f),.2*(1-.65*f),.2*(1-.65*f)],[.91,.06,.13]);}
  for(const d of this.drops){d.ttl-=dt;d.p=[d.p[0]+d.v[0]*dt,d.p[1]+d.v[1]*dt,d.p[2]+d.v[2]*dt];if(d.v[1]<0)d.v[1]-=2*dt;if(d.ttl>0)this.draw(d.p,[d.size,d.size*(d.v[1]<0?1.6:1),d.size],d.c,0,false,Math.min(1,d.ttl));}this.drops=this.drops.filter(x=>x.ttl>0);
+  // Check the framebuffer immediately after drawing, before the browser composites it.
+  if (!this.frameConfirmed && this.onFrame) {
+    const center = new Uint8Array(4);
+    gl.readPixels(Math.floor(pw*.5),Math.floor(ph*.5),1,1,gl.RGBA,gl.UNSIGNED_BYTE,center);
+    if (center[3] > 10 && gl.getError() === gl.NO_ERROR) {
+      this.frameConfirmed = true;
+      this.onFrame();
+    }
+  }
  }
 }
