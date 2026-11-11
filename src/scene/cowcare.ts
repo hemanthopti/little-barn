@@ -286,9 +286,17 @@ export function initCowCare() {
   try {
     cow3d = new Cow3D(canvas);
     cow3d.onLost = () => {
-      // A lost GPU context must never leave children staring at an empty room.
       showPaintedCow();
       cow3d = null;
+    };
+    cow3d.onFrame = () => {
+      if (!entered || !canvas3d) return;
+      if (canvas3d.getBoundingClientRect().width < 10) return;
+      modelReady = true;
+      clearTimeout(check3dTimer);
+      $('ccCowImg').setAttribute('opacity','0');
+      $('ccBucket').setAttribute('opacity','0');
+      $('ccFoam').setAttribute('opacity','0');
     };
     // Do not hide the existing painted cow yet. WebGL context creation does not
     // mean the browser can actually display a canvas embedded in an SVG foreignObject.
@@ -321,41 +329,15 @@ export function initCowCare() {
 export function cowCareEnter() {
   entered = true;
   cow3d?.start();
-  // Validate *visible pixels* in the WebGL buffer after scene entry.
-  // If the browser cannot render its SVG foreignObject, the painted cow remains visible.
+  // The fallback is kept until Cow3D confirms a GPU frame inside its render loop.
   clearTimeout(check3dTimer);
-  if (cow3d && canvas3d && !modelReady) {
-    let attempts = 0;
-    const check = () => {
-      if (!entered || !cow3d || !canvas3d || modelReady) return;
-      const canvas = canvas3d;
-      const gl = canvas.getContext('webgl2');
-      if (gl && canvas.width > 0 && canvas.height > 0) {
-        const points = [[.5,.5],[.42,.55],[.56,.47],[.46,.7],[.6,.6],[.35,.45]];
-        let painted = false;
-        for (const [x,y] of points) {
-          const pixel = new Uint8Array(4);
-          gl.readPixels(Math.floor(canvas.width*x),Math.floor(canvas.height*y),1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
-          if (pixel[3] > 10) { painted=true; break; }
-        }
-        if (painted) {
-          modelReady = true;
-          // SVG fallback stays in the DOM but does not obscure the working 3D canvas.
-          $('ccCowImg').setAttribute('opacity','0');
-          $('ccBucket').setAttribute('opacity','0');
-          $('ccFoam').setAttribute('opacity','0');
-          return;
-        }
+  if (cow3d && !modelReady) {
+    check3dTimer=window.setTimeout(() => {
+      if (entered && !modelReady) {
+        console.warn('Cow Care WebGL scene did not render; painted cow retained');
+        cow3d?.stop(); cow3d = null; showPaintedCow();
       }
-      if (++attempts < 12) check3dTimer = window.setTimeout(check, 150);
-      else {
-        console.warn('Cow Care: 3D rendered no visible pixels; using painted fallback');
-        showPaintedCow();
-        cow3d?.stop();
-        cow3d = null;
-      }
-    };
-    check3dTimer = window.setTimeout(check, 170);
+    }, 3000);
   }
   ++actionToken; selected = 'pet'; cleaning = 0; milkLevel = 0;
   node('ccFoam').setAttribute('opacity', modelReady ? '0' : '.1');
