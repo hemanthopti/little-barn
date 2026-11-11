@@ -6,7 +6,9 @@ const browser=await chromium.launch({headless:true,args:['--enable-webgl','--ena
 try{
   const page=await browser.newPage({viewport:{width:1536,height:864},deviceScaleFactor:1});
   const failures=[];
+  const browserConsole=[];
   page.on('pageerror',e=>failures.push(e.message));
+  page.on('console',m=>browserConsole.push(m.type()+': '+m.text()));
   await page.goto(base,{waitUntil:'networkidle'});
   await page.locator('#splash').dispatchEvent('pointerdown',{pointerId:1,pointerType:'mouse'});
   await page.waitForTimeout(350);
@@ -30,6 +32,7 @@ try{
   await page.screenshot({path:'test-artifacts/cowcare-3d-chromium.png'});
   console.log('COW_3D_BROWSER_SMOKE',JSON.stringify(result));
   console.log('COW_3D_PAGE_ERRORS',JSON.stringify(failures));
+  console.log('COW_3D_CONSOLE',JSON.stringify(browserConsole));
   assert.equal(result.sceneDisplay,'block','Cow Care SVG must be visible');
   assert.equal(result.overlay,true,'WebGL HTML overlay must exist');
   assert.equal(result.opacity,'1','WebGL overlay must be visible after confirmed frame');
