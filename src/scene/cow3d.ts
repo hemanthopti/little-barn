@@ -53,10 +53,10 @@ void main(){vec4 w=model*vec4(position,1.);N=mat3(transpose(inverse(model)))*nor
 const fs=`#version 300 es
 precision highp float;
 in vec3 N,V,P;uniform vec3 color;uniform float spot,opacity;out vec4 outColor;
-float patch(vec3 p,vec3 center,vec3 rad){vec3 d=(p-center)/rad;return 1.-smoothstep(.75,1.1,dot(d,d));}
+float cowBlotch(vec3 p,vec3 center,vec3 rad){vec3 d=(p-center)/rad;return 1.-smoothstep(.75,1.1,dot(d,d));}
 void main(){vec3 n=normalize(N),l=normalize(vec3(-.55,.85,1.));
 vec3 base=color;
-if(spot>.5){float x=max(max(patch(P,vec3(.7,.55,.8),vec3(.34,.44,.46)),patch(P,vec3(.85,-.5,.5),vec3(.33,.43,.48))),patch(P,vec3(-.24,-.68,.56),vec3(.26,.35,.39)));base=mix(base,vec3(.24,.18,.16),x);}
+if(spot>.5){float x=max(max(cowBlotch(P,vec3(.7,.55,.8),vec3(.34,.44,.46)),cowBlotch(P,vec3(.85,-.5,.5),vec3(.33,.43,.48))),cowBlotch(P,vec3(-.24,-.68,.56),vec3(.26,.35,.39)));base=mix(base,vec3(.24,.18,.16),x);}
 float diffuse=max(dot(n,l),0.);float spec=pow(max(dot(n,normalize(l+normalize(V))),0.),42.);
 vec3 col=base*(vec3(.45,.49,.57)+vec3(.76,.69,.55)*diffuse)+vec3(spec*.28);
 outColor=vec4(col,opacity);}`;
