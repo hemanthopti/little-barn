@@ -77,7 +77,16 @@ $('splash').addEventListener('pointerdown', (e: PointerEvent) => {
 });
 
 // Offline support: caches the whole game after the first visit and updates itself quietly.
-if ('serviceWorker' in navigator) registerSW({ immediate: true });
+// Offline support. A new version installs itself in the background and the page reloads into it;
+// we also look for one whenever the game comes back to the front, and every hour while it stays open.
+if ('serviceWorker' in navigator) registerSW({
+  immediate: true,
+  onRegisteredSW(_url, r) {
+    if (!r) return;
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) r.update(); });
+    setInterval(() => r.update(), 60 * 60 * 1000);
+  }
+});
 
 // Testing aid: open with ?debug to start hide and seek from the browser console (lb.hide()).
 if (location.search.includes('debug')) import('./scene/hideseek').then(m => { (window as any).lb = { hide: m.startHide }; });

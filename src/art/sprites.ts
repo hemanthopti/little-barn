@@ -1,3 +1,4 @@
+import { asset } from '../core/assets';
 /**
  * Painted art. Files live in public/art/*.webp (made from the AI art kit).
  * SIZE holds each image's pixel size so the scene can lay pieces out before they load.
@@ -21,7 +22,7 @@ export const SIZE: Record<string, [number, number]> = {
   'k/stove': [636, 700], 'k/fridge': [410, 700], 'k/pot': [700, 463], 'k/fridge-open': [614, 700], 'k/banana': [341, 316], 'k/carrot': [279, 358], 'k/milk': [196, 348], 'k/cheese': [292, 286], 'k/watermelon': [362, 251], 'k/grapes': [301, 325], 'k/broccoli': [338, 339], 'k/tomato': [326, 330], 'k/orange': [322, 343], 'k/toaster': [310, 255], 'k/bread': [257, 247], 'k/toast': [261, 248], 'k/spoon': [284, 294], 'k/table': [336, 231], 'k/plate': [341, 232], 'k/bowl': [306, 225], 'k/cookies': [352, 208], 'k/cookie': [258, 259], 'k/clock': [298, 348], 'k/cuckoo': [245, 222], 'k/kettle': [317, 319]
 };
 
-export const url = (name: string) => `art/${name}.webp`;
+export const url = (name: string) => asset(`art/${name}.webp`);
 
 /**
  * Animated clips (sprite sheets made from AI video, see Art Kit step 4).

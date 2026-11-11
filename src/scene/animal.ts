@@ -1,3 +1,4 @@
+import { asset } from '../core/assets';
 import { el, clamp, easeOut, inPond } from '../core/util';
 import { tween, tickers } from '../core/engine';
 import { objs, Interactive, Drag, Hold } from '../core/input';
@@ -116,7 +117,7 @@ export class Animal implements Interactive {
     this.stopClip();
     const k = this.h / c.stand, svg = this.clipSvg, im = svg.firstElementChild as SVGImageElement;
     const rows = Math.ceil(c.n / c.cols);
-    im.setAttribute('href', c.src);
+    im.setAttribute('href', asset(c.src));
     im.setAttribute('width', String(c.cw * c.cols)); im.setAttribute('height', String(c.ch * rows));
     svg.setAttribute('x', (-c.ax * k).toFixed(1)); svg.setAttribute('y', (-c.ay * k).toFixed(1));
     svg.setAttribute('width', (c.cw * k).toFixed(1)); svg.setAttribute('height', (c.ch * k).toFixed(1));

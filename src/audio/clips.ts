@@ -1,3 +1,4 @@
+import { asset } from '../core/assets';
 import { state, Lang } from '../core/state';
 import { AC, master, SYNTH } from './synth';
 
@@ -16,7 +17,7 @@ const loading = new Map<string, Promise<AudioBuffer | null>>();
 
 export async function loadManifest() {
   try {
-    const r = await fetch('audio/manifest.json', { cache: 'no-cache' });
+    const r = await fetch(asset('audio/manifest.json'));
     if (r.ok) manifest = await r.json();
   } catch { /* offline first run or no manifest: synth only */ }
 }
@@ -27,7 +28,7 @@ function load(path: string): Promise<AudioBuffer | null> {
     loading.set(path, (async () => {
       const a = AC(); if (!a) return null;
       try {
-        const data = await (await fetch('audio/' + path)).arrayBuffer();
+        const data = await (await fetch(asset('audio/' + path))).arrayBuffer();
         const buf = await a.decodeAudioData(data);
         buffers.set(path, buf); return buf;
       } catch { return null; }
