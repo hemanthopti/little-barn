@@ -7,6 +7,7 @@ export const SIZE: Record<string, [number, number]> = {
   bush: [292, 168], 'cloud-1': [260, 155], 'cloud-2': [224, 142], fence: [414, 153], 'flower-1': [121, 159], 'flower-2': [126, 161],
   'flower-3': [126, 162], hay: [250, 184], 'loft-shutter': [124, 142], moon: [184, 193], pond: [422, 141],
   sun: [168, 160], tree: [318, 356], 'learn-thumb': [300, 200], 'farm-thumb': [480, 260], 'music-thumb': [300, 200],
+  'm/stage': [1672, 941], 'm/drum': [446, 393], 'm/xylophone': [534, 274], 'm/tambourine': [455, 368], 'm/maracas': [445, 432], 'm/disco': [352, 471], 'm/piano': [503, 411],
   'cow-idle': [556, 520], 'cow-happy': [525, 489], 'cow-sleep': [613, 383],
   'duck-idle': [374, 520], 'duck-happy': [447, 475], 'duck-sleep': [459, 368],
   'frog-idle': [454, 505], 'frog-happy': [573, 520], 'frog-sleep': [534, 386],

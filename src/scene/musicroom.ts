@@ -2,7 +2,8 @@ import { $, el, rnd, pick } from '../core/util';
 import { tween, tickers } from '../core/engine';
 import { objs, input, Pt } from '../core/input';
 import { state } from '../core/state';
-import { AC, xylo, drum, shaker, jingle, sing } from '../audio/synth';
+import { AC, xylo, drum, shaker, jingle, sing, piano } from '../audio/synth';
+import { img, fit } from '../art/sprites';
 import { speak } from '../audio/speech';
 import { TUNE } from '../audio/music';
 import { Animal } from './animal';
@@ -17,14 +18,21 @@ import { sparkleAt } from './fx';
 const layer = (id: string) => $(id) as SVGGElement;
 const COLORS = ['#FF5C5C', '#FF9F43', '#FFD43B', '#51CF66', '#22B8CF', '#4C6EF5', '#9775FA', '#F06595'];
 const XY_NOTES = [523.3, 587.3, 659.3, 698.5, 784.0, 880.0, 987.8, 1046.5];
-const XY = { x0: 520, step: 72, w: 58, cy: 742 };
+const PIANO_NOTES = [261.6, 293.7, 329.6, 349.2, 392.0, 440.0, 493.9];
+// Painted pieces (art/m/): where each stands (x = centre, y = bottom) and its width
+const DRUM = { x: 230, y: 880, w: 290 }, XYL = { x: 740, y: 872, w: 480 }, PIANO = { x: 1205, y: 882, w: 270 };
+const MARACAS = { x: 250, y: 618, w: 150 }, TAMB = { x: 1350, y: 612, w: 150 }, BALL = { x: 800, top: 40, w: 112 };
+// Bar centres across the xylophone picture, and where the white keys sit on the piano picture (fractions of width/height)
+const BAR_X = [85, 137, 190, 243, 295, 347, 401, 453].map(v => v / 534), BAR_Y: [number, number] = [.12, .78];
+const KEYS: [number, number] = [43 / 503, 405 / 503], KEY_Y: [number, number] = [.36, .65];
+const box = (o: { x: number; y: number; w: number }, name: string) => { const [w, h] = fit('m/' + name, o.w); return { x0: o.x - w / 2, y0: o.y - h, w, h }; };
 
 const CHOIR: { kind: Kind; x: number; h: number; note: number; vowel: 'ah' | 'oo' | 'ee' }[] = [
-  { kind: 'cow', x: 470, h: 150, note: 130.8, vowel: 'oo' },
-  { kind: 'pig', x: 640, h: 124, note: 196.0, vowel: 'ah' },
-  { kind: 'duck', x: 800, h: 104, note: 261.6, vowel: 'ah' },
-  { kind: 'puppy', x: 960, h: 130, note: 329.6, vowel: 'oo' },
-  { kind: 'kitten', x: 1120, h: 124, note: 392.0, vowel: 'ee' }
+  { kind: 'cow', x: 470, h: 165, note: 130.8, vowel: 'oo' },
+  { kind: 'pig', x: 640, h: 136, note: 196.0, vowel: 'ah' },
+  { kind: 'duck', x: 800, h: 114, note: 261.6, vowel: 'ah' },
+  { kind: 'puppy', x: 960, h: 142, note: 329.6, vowel: 'oo' },
+  { kind: 'kitten', x: 1120, h: 136, note: 392.0, vowel: 'ee' }
 ];
 let singers: Animal[] = [];
 let dancing = false;
@@ -39,18 +47,21 @@ function note(x: number, y: number, colour = pick(COLORS)) {
     n.setAttribute('opacity', String(t < .7 ? 1 : (1 - t) / .3));
   }, () => n.remove());
 }
-function pulse(g: Element, cx: number, cy: number, k = .12, ms = 260) {
-  tween(ms, t => g.setAttribute('transform', `translate(${cx},${cy}) scale(${(1 + Math.sin(Math.PI * t) * k).toFixed(3)}) translate(${-cx},${-cy})`), () => g.removeAttribute('transform'));
-}
 
 // ---------- instruments ----------
+/** Squash-and-stretch from the bottom centre, like the thing was struck. */
+function squash(g: Element, cx: number, by: number, k = .07, ms = 300) {
+  tween(ms, t => { const q = Math.sin(Math.PI * t) * k; g.setAttribute('transform', `translate(${cx},${by}) scale(${(1 + q * .6).toFixed(3)},${(1 - q).toFixed(3)}) translate(${-cx},${-by})`); }, () => g.removeAttribute('transform'));
+}
+function flash(x: number, y: number, w: number, h: number, colour = '#fff') {
+  const r = el('rect', { x, y, width: w, height: h, rx: Math.min(w, h) * .3, fill: colour, opacity: .6 }, layer('mfx'));
+  tween(380, t => r.setAttribute('opacity', String(.6 * (1 - t))), () => r.remove());
+}
 function hitDrum() {
   AC(); drum();
-  const skin = $('m-skin'), body = $('m-drumBody');
-  tween(300, t => skin.setAttribute('ry', String(34 - Math.sin(Math.PI * t) * 8)));
-  pulse(body, 230, 700, .05);
-  note(230, 560); note(230, 560);
-  // the choir feels the beat
+  squash($('m-drum'), DRUM.x, DRUM.y, .08);
+  const b = box(DRUM, 'drum');
+  note(DRUM.x, b.y0); note(DRUM.x, b.y0);
   if (!dancing) singers.forEach((a, i) => setTimeout(() => a.bounce(), i * 40));
 }
 function shake(g: Element, cx: number, cy: number, sound: () => void) {
@@ -58,12 +69,26 @@ function shake(g: Element, cx: number, cy: number, sound: () => void) {
   tween(420, t => g.setAttribute('transform', `rotate(${(Math.sin(t * Math.PI * 6) * 12 * (1 - t)).toFixed(1)} ${cx} ${cy})`), () => g.removeAttribute('transform'));
   note(cx, cy - 80);
 }
-function xyIndex(p: Pt) { return Math.max(0, Math.min(7, Math.round((p.x - XY.x0 - XY.w / 2) / XY.step))); }
+function xyIndex(p: Pt) {
+  const b = box(XYL, 'xylophone'), f = (p.x - b.x0) / b.w;
+  let best = 0; BAR_X.forEach((c, i) => { if (Math.abs(c - f) < Math.abs(BAR_X[best] - f)) best = i; });
+  return best;
+}
 function playBar(i: number) {
   AC(); xylo(XY_NOTES[i]);
-  const bar = $('m-bar' + i), x = XY.x0 + i * XY.step + XY.w / 2;
-  tween(240, t => bar.setAttribute('transform', `translate(0,${(Math.sin(Math.PI * t) * 8).toFixed(1)})`), () => bar.removeAttribute('transform'));
-  note(x, 600, COLORS[i]);
+  const b = box(XYL, 'xylophone'), x = b.x0 + BAR_X[i] * b.w, bw = b.w * .085;
+  flash(x - bw / 2, b.y0 + BAR_Y[0] * b.h, bw, (BAR_Y[1] - BAR_Y[0]) * b.h);
+  note(x, b.y0, COLORS[i]);
+}
+function keyIndex(p: Pt) {
+  const b = box(PIANO, 'piano'), f = ((p.x - b.x0) / b.w - KEYS[0]) / (KEYS[1] - KEYS[0]);
+  return Math.max(0, Math.min(6, Math.floor(f * 7)));
+}
+function playKey(i: number) {
+  AC(); piano(PIANO_NOTES[i]);
+  const b = box(PIANO, 'piano'), kw = (KEYS[1] - KEYS[0]) * b.w / 7, x = b.x0 + KEYS[0] * b.w + i * kw;
+  flash(x + 2, b.y0 + KEY_Y[0] * b.h, kw - 4, (KEY_Y[1] - KEY_Y[0]) * b.h, COLORS[i]);
+  note(x + kw / 2, b.y0, COLORS[i]);
 }
 function singAnimal(i: number) {
   const c = CHOIR[i], a = singers[i];
@@ -79,7 +104,7 @@ function dance() {
   dancing = true; AC();
   speak('dance');
   const lights = layer('mLights'), spots: SVGEllipseElement[] = [];
-  for (let i = 0; i < 6; i++) spots.push(el('ellipse', { rx: 120, ry: 60, fill: COLORS[i + 1], opacity: .9, style: 'mix-blend-mode:screen' }, lights) as SVGEllipseElement);
+  for (let i = 0; i < 6; i++) spots.push(el('ellipse', { rx: 120, ry: 60, fill: COLORS[i + 1], opacity: .75, filter: 'url(#mBlur)', style: 'mix-blend-mode:screen' }, lights) as SVGEllipseElement);
   let t0 = 0;
   const sweep = (dt: number) => {
     t0 += dt;
@@ -88,7 +113,8 @@ function dance() {
       s.setAttribute('cx', String(800 + Math.cos(a) * (500 + i * 40)));
       s.setAttribute('cy', String(i % 2 ? 300 + Math.sin(a * 1.3) * 150 : 700 + Math.sin(a) * 120));
     });
-    $('m-ballFacets').setAttribute('transform', `translate(${((t0 / 12) % 24).toFixed(1)},0)`);
+    $('m-disco').setAttribute('transform', `rotate(${(Math.sin(t0 / 300) * 4).toFixed(2)} ${BALL.x} 0)`);
+    if (Math.random() < .08) sparkleAt(BALL.x + rnd(-40, 40), BALL.top + 110 + rnd(-40, 40), 2, true);
   };
   tickers.add(sweep);
   // 32 beats of the room's own tune, with drum, shaker and bells
@@ -115,8 +141,8 @@ function dance() {
   const end = () => {
     if (ended) return;
     ended = true; dancing = false; tickers.delete(sweep);
-    lights.innerHTML = '';
-    sparkleAt(800, 160, 10, true);
+    lights.innerHTML = ''; $('m-disco').removeAttribute('transform');
+    sparkleAt(BALL.x, BALL.top + 90, 10, true);
   };
   stopDance = end;
   step();
@@ -126,61 +152,43 @@ let stopDance = () => { };
 // ---------- build ----------
 export function initMusicRoom() {
   const back = layer('mBack'), mid = layer('mMid'), front = layer('mFront');
+  const pic = (n: string, o: { x: number; y: number; w: number }) => { const [w, h] = fit('m/' + n, o.w); return img('m/' + n, o.x, o.y, w, h); };
+  const shadow = (x: number, y: number, rx: number) => `<ellipse cx="${x}" cy="${y - 4}" rx="${rx}" ry="${(rx * .13).toFixed(1)}" fill="url(#mShadow)"/>`;
 
-  // Bunting across the top
-  let b = '<path d="M-60,30 Q800,150 1660,30" fill="none" stroke="#fff" stroke-width="4"/>';
-  for (let i = 0; i < 22; i++) {
-    const t = (i + .5) / 22, x = -60 + 1720 * t, y = 30 + 120 * 4 * t * (1 - t) * .5 + 4;
-    b += `<path d="M${(x - 26).toFixed(1)},${y.toFixed(1)} L${(x + 26).toFixed(1)},${y.toFixed(1)} L${x.toFixed(1)},${(y + 52).toFixed(1)} Z" fill="${COLORS[i % 8]}"/>`;
-  }
-  // Music notes painted on the wall, a soft stage spot, and the choir riser
-  for (const [x, y, s] of [[150, 260, 70], [1450, 230, 80], [300, 420, 50], [1220, 400, 55]] as const)
-    b += `<text x="${x}" y="${y}" font-size="${s}" fill="#fff" opacity=".45" text-anchor="middle">♫</text>`;
-  b += `<ellipse cx="800" cy="520" rx="520" ry="70" fill="url(#mSpot)"/>` +
-    `<rect x="360" y="470" width="880" height="56" rx="22" fill="#8E5BD6" filter="url(#mSoft)"/><rect x="360" y="470" width="880" height="16" rx="8" fill="#B08AF0"/>`;
-  back.innerHTML = b;
+  // Painted stage room
+  back.innerHTML = img('m/stage', 800, 900, 1600, 900);
 
-  // Disco ball
-  const ball = el('g', { 'data-id': 'm-disco' }, back) as SVGGElement;
-  ball.innerHTML = `<line x1="800" y1="-200" x2="800" y2="72" stroke="#8E9AAF" stroke-width="4"/>` +
-    `<clipPath id="mBallClip"><circle cx="800" cy="128" r="56"/></clipPath>` +
-    `<circle cx="800" cy="128" r="56" fill="url(#mBall)" filter="url(#mSoft)"/>` +
-    `<g clip-path="url(#mBallClip)" opacity=".55"><g id="m-ballFacets" stroke="#7D8AA3" stroke-width="2">` +
-    Array.from({ length: 9 }, (_, i) => `<line x1="${730 + i * 24}" y1="60" x2="${730 + i * 24}" y2="200"/>`).join('') +
-    Array.from({ length: 6 }, (_, i) => `<line x1="700" y1="${84 + i * 18}" x2="900" y2="${84 + i * 18}"/>`).join('') +
-    `</g></g><circle cx="782" cy="110" r="9" fill="#fff"/>` +
-    `<circle cx="800" cy="128" r="80" fill="transparent"/>`;
-  objs['m-disco'] = { tap: () => { if (dancing) sparkleAt(800, 128, 6, true); else dance(); } };
+  // Disco ball hanging from the ceiling
+  const [bw, bh] = fit('m/disco', BALL.w);
+  const ball = el('g', { 'data-id': 'm-disco', id: 'm-disco' }, back) as SVGGElement;
+  ball.innerHTML = `<line x1="${BALL.x}" y1="-300" x2="${BALL.x}" y2="${BALL.top + 4}" stroke="#C8A06A" stroke-width="5"/>` +
+    img('m/disco', BALL.x, BALL.top + bh, bw, bh) + `<circle cx="${BALL.x}" cy="${BALL.top + bh * .62}" r="${bw * .75}" fill="transparent"/>`;
+  objs['m-disco'] = { tap: () => { if (dancing) sparkleAt(BALL.x, BALL.top + bh * .6, 6, true); else dance(); } };
 
-  // Animal choir on the riser
+  // Maracas and tambourine at the two ends of the stage
+  const mr = el('g', { 'data-id': 'm-maracas' }, back) as SVGGElement;
+  mr.innerHTML = shadow(MARACAS.x, MARACAS.y, 70) + pic('maracas', MARACAS);
+  objs['m-maracas'] = { tap: () => shake(mr, MARACAS.x, MARACAS.y - 60, () => { shaker(); shaker(.22); }) };
+  const tb = el('g', { 'data-id': 'm-tamb' }, back) as SVGGElement;
+  tb.innerHTML = shadow(TAMB.x, TAMB.y, 72) + pic('tambourine', TAMB);
+  objs['m-tamb'] = { tap: () => shake(tb, TAMB.x, TAMB.y - 60, jingle) };
+
+  // Animal choir on the stage
   singers = CHOIR.map((c, i) => {
-    el('ellipse', { cx: c.x, cy: 478, rx: c.h * .42, ry: 9, fill: 'url(#mShadow)' }, mid);
-    const a = new Animal(c.kind, `m-${c.kind}`, c.x, 480, c.h, mid, false, false);
+    el('ellipse', { cx: c.x, cy: 604, rx: c.h * .42, ry: 10, fill: 'url(#mShadow)' }, mid);
+    const a = new Animal(c.kind, `m-${c.kind}`, c.x, 606, c.h, mid, false, false);
     objs[`m-${c.kind}`] = { tap: () => singAnimal(i) };
     return a;
   });
   singers[0].setFacing(1); singers[1].setFacing(1);
 
-  // Drum
-  const dr = el('g', { 'data-id': 'm-drum' }, front) as SVGGElement;
-  dr.innerHTML = `<ellipse cx="230" cy="868" rx="150" ry="20" fill="url(#mShadow)"/>` +
-    `<g id="m-drumBody"><rect x="100" y="640" width="260" height="210" rx="18" fill="url(#mDrum)"/>` +
-    `<path d="M100,660 ${Array.from({ length: 7 }, (_, i) => `L${118 + i * 37},836 L${137 + i * 37},660`).join(' ')}" fill="none" stroke="#FFE08A" stroke-width="5" stroke-linejoin="round"/>` +
-    `<rect x="94" y="826" width="272" height="26" rx="13" fill="#FFC94D"/><rect x="94" y="628" width="272" height="26" rx="13" fill="#FFC94D"/>` +
-    `<ellipse id="m-skin" cx="230" cy="632" rx="134" ry="34" fill="#FFF4DE" stroke="#FFC94D" stroke-width="8"/></g>`;
+  // Drum, xylophone and toy piano on the floor
+  const dr = el('g', { 'data-id': 'm-drum', id: 'm-drum' }, front) as SVGGElement;
+  dr.innerHTML = shadow(DRUM.x, DRUM.y, 150) + pic('drum', DRUM);
   objs['m-drum'] = { tap: hitDrum };
 
-  // Xylophone: frame + eight rainbow bars; tap or slide along
-  let x = `<rect x="490" y="690" width="${8 * XY.step + 40}" height="20" rx="10" fill="#8D5524" transform="rotate(-2 800 700)"/>` +
-    `<rect x="490" y="780" width="${8 * XY.step + 40}" height="20" rx="10" fill="#8D5524" transform="rotate(2 800 790)"/>`;
-  for (let i = 0; i < 8; i++) {
-    const h = 240 - i * 14, bx = XY.x0 + i * XY.step, by = XY.cy - h / 2;
-    x += `<g id="m-bar${i}"><rect x="${bx}" y="${by}" width="${XY.w}" height="${h}" rx="14" fill="${COLORS[i]}" filter="url(#mSoft)"/>` +
-      `<rect x="${bx + 8}" y="${by + 8}" width="12" height="${h - 16}" rx="6" fill="#fff" opacity=".35"/>` +
-      `<circle cx="${bx + XY.w / 2}" cy="${by + 22}" r="6" fill="#fff" opacity=".8"/><circle cx="${bx + XY.w / 2}" cy="${by + h - 22}" r="6" fill="#fff" opacity=".8"/></g>`;
-  }
   const xy = el('g', { 'data-id': 'm-xylo' }, front) as SVGGElement;
-  xy.innerHTML = x;
+  xy.innerHTML = shadow(XYL.x, XYL.y, 230) + pic('xylophone', XYL);
   let last = -1;
   objs['m-xylo'] = {
     tap: p => playBar(xyIndex(p)),
@@ -191,32 +199,24 @@ export function initMusicRoom() {
     }
   };
 
-  // Tambourine
-  const tb = el('g', { 'data-id': 'm-tamb' }, front) as SVGGElement;
-  let tm = `<circle cx="1310" cy="610" r="92" fill="#F6C76B" filter="url(#mSoft)"/><circle cx="1310" cy="610" r="72" fill="#FFF1D0"/>` +
-    `<circle cx="1310" cy="610" r="72" fill="none" stroke="#E0A33A" stroke-width="5"/>`;
-  for (let i = 0; i < 6; i++) {
-    const a = i / 6 * Math.PI * 2, cx = 1310 + Math.cos(a) * 82, cy = 610 + Math.sin(a) * 82;
-    tm += `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="16" ry="11" fill="#FFD43B" stroke="#C99A1E" stroke-width="3"/>`;
-  }
-  tb.innerHTML = tm;
-  objs['m-tamb'] = { tap: () => shake(tb, 1310, 610, jingle) };
-
-  // Maracas
-  const mr = el('g', { 'data-id': 'm-maracas' }, front) as SVGGElement;
-  mr.innerHTML = `<ellipse cx="1270" cy="868" rx="120" ry="16" fill="url(#mShadow)"/>` +
-    `<g transform="rotate(-18 1220 800)"><rect x="1211" y="790" width="18" height="90" rx="8" fill="#8D5524"/><ellipse cx="1220" cy="760" rx="44" ry="56" fill="#22B8CF" filter="url(#mSoft)"/>` +
-    `<path d="M1182,750 Q1220,730 1258,750" stroke="#FFD43B" stroke-width="7" fill="none"/><path d="M1180,775 Q1220,795 1260,775" stroke="#FF5C5C" stroke-width="7" fill="none"/></g>` +
-    `<g transform="rotate(20 1340 800)"><rect x="1331" y="790" width="18" height="90" rx="8" fill="#8D5524"/><ellipse cx="1340" cy="760" rx="44" ry="56" fill="#F06595" filter="url(#mSoft)"/>` +
-    `<path d="M1302,750 Q1340,730 1378,750" stroke="#51CF66" stroke-width="7" fill="none"/><path d="M1300,775 Q1340,795 1380,775" stroke="#FFD43B" stroke-width="7" fill="none"/></g>`;
-  objs['m-maracas'] = { tap: () => shake(mr, 1280, 800, () => { shaker(); shaker(.22); }) };
+  const pn = el('g', { 'data-id': 'm-piano' }, front) as SVGGElement;
+  pn.innerHTML = shadow(PIANO.x, PIANO.y, 140) + pic('piano', PIANO);
+  let lastK = -1;
+  objs['m-piano'] = {
+    tap: p => playKey(keyIndex(p)),
+    drag: {
+      start: p0 => { lastK = keyIndex(p0); playKey(lastK); },
+      move: p => { const i = keyIndex(p); if (i !== lastK) { lastK = i; playKey(i); } },
+      end: () => { lastK = -1; }
+    }
+  };
 
   // Nothing touched for a while: the disco ball twinkles, or an animal hums a note
   setInterval(() => {
     if (!state.started || state.asleep || state.scene !== 'music' || !$('panel').hidden || dancing) return;
     if (Date.now() - input.lastTouch < 18000) return;
     input.lastTouch = Date.now();
-    if (Math.random() < .5) sparkleAt(800, 128, 8, true); else singAnimal(Math.floor(Math.random() * CHOIR.length));
+    if (Math.random() < .5) sparkleAt(BALL.x, BALL.top + 90, 8, true); else singAnimal(Math.floor(Math.random() * CHOIR.length));
   }, 1000);
 }
 

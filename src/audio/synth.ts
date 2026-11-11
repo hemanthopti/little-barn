@@ -166,6 +166,13 @@ export function sing(f: number, vowel: 'ah' | 'oo' | 'ee' = 'ah', dur = .75, vol
   osc.start(t); lfo.start(t); osc.stop(t + dur + .05); lfo.stop(t + dur + .05);
 }
 
+/** Toy piano: bright and short, a little plinky. */
+export function piano(freq: number) {
+  tone({ type: 'triangle', f0: freq, dur: 1.1, vol: .2, att: .003 });
+  tone({ type: 'sine', f0: freq * 2, dur: .5, vol: .06, att: .002 });
+  tone({ type: 'sine', f0: freq * 3.01, dur: .2, vol: .03, att: .002 });
+}
+
 export function xylo(freq: number) {
   tone({ type: 'sine', f0: freq, dur: .9, vol: .22, att: .004 });
   tone({ type: 'sine', f0: freq * 4, dur: .15, vol: .035, att: .002 });
