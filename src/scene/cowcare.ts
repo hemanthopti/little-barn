@@ -165,7 +165,7 @@ function toolDrag(id: Tool): Interactive {
       start(_start, p) {
         if (!isActive()) return false;
         activeTool = id;
-        toolGhost = el('g', { 'pointer-events': 'none' }, get('ccDrag'));
+        toolGhost = el('g', { 'pointer-events': 'none' }, get('ccDrag')) as SVGGElement;
         toolGhost.innerHTML = '<circle r="51" fill="#fff9dc" stroke="#ffdc7f" stroke-width="5"/><text y="17" font-size="58" text-anchor="middle">' + TOOLS[home].icon + '</text>';
         toolGhost.setAttribute('transform', 'translate(' + p.x + ',' + p.y + ')');
         return true;
