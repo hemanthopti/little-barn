@@ -21,10 +21,19 @@ jobs:
         env: { OUT_DIR: dist }
       - if: env.HAS_FTP != 'true'
         run: echo '::warning::Built OK, but nothing uploaded - add the FTP secrets to publish.'
+      - name: Tidy the server name (drops ftp://, a port, spaces, a trailing /)
+        id: ftp
+        if: env.HAS_FTP == 'true'
+        env: { RAW: '${{ secrets.FTP_SERVER }}' }
+        run: |
+          host=$(printf '%s' "$RAW" | tr -d '[:space:]' | sed -E 's#^[a-zA-Z]+://##; s#/.*$##; s#:[0-9]+$##')
+          echo "::add-mask::$host"
+          echo "host=$host" >> "$GITHUB_OUTPUT"
+          if getent hosts "$host" > /dev/null; then echo "Server name found."; else echo "::error::The FTP_SERVER secret is not a server name that exists. Copy the FTP IP (or hostname) from Hostinger hPanel → Files → FTP Accounts."; exit 1; fi
       - if: env.HAS_FTP == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          server: ${{ steps.ftp.outputs.host }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
