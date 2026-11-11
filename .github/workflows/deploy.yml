@@ -11,6 +11,7 @@ concurrency: deploy
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env: { HAS_FTP: "${{ secrets.FTP_SERVER != '' }}" }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,7 +19,10 @@ jobs:
       - run: npm ci
       - run: npm run build
         env: { OUT_DIR: dist }
-      - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - if: env.HAS_FTP != 'true'
+        run: echo "::warning::Built OK, but nothing uploaded: add the FTP_* secrets to publish."
+      - if: env.HAS_FTP == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
