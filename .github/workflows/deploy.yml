@@ -20,7 +20,7 @@ jobs:
       - run: npm run build
         env: { OUT_DIR: dist }
       - if: env.HAS_FTP != 'true'
-        run: echo "::warning::Built OK, but nothing uploaded: add the FTP_* secrets to publish."
+        run: echo '::warning::Built OK, but nothing uploaded - add the FTP secrets to publish.'
       - if: env.HAS_FTP == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
