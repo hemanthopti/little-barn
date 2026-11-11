@@ -57,19 +57,27 @@ if (!key) { console.error('Set SARVAM_API_KEY first (see the top of scripts/make
 let ok = 0, bad = 0;
 for (const j of jobs) {
   try {
-    const r = await fetch('https://api.sarvam.ai/text-to-speech', {
+    // The free tier allows only a few requests a minute: go gently, and wait and retry when told to slow down.
+    let r;
+    for (let wait = 4000; ; wait *= 2) {
+      r = await fetch('https://api.sarvam.ai/text-to-speech', {
       method: 'POST',
       headers: { 'api-subscription-key': key, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: j.text, target_language_code: TAG[j.lang], speaker: VOICE[j.lang], model: 'bulbul:v3', pace: PACE, speech_sample_rate: 24000 })
-    });
+        body: JSON.stringify({ text: j.text, target_language_code: TAG[j.lang], speaker: VOICE[j.lang], model: 'bulbul:v3', pace: PACE, speech_sample_rate: 24000 })
+      });
+      if (r.status !== 429 || wait > 64000) break;
+      console.log(`    (busy, waiting ${wait / 1000}s)`);
+      await new Promise(res => setTimeout(res, wait));
+    }
     if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 200)}`);
     const data = await r.json();
     mkdirSync(join(IN, j.lang), { recursive: true });
     writeFileSync(mine(j.lang, j.key), Buffer.from(data.audios.join(''), 'base64'));
     ok++; console.log(`  ✓ ${j.lang} ${j.key.padEnd(14)} ${j.text}`);
+    await new Promise(res => setTimeout(res, 700));
   } catch (e) {
     bad++; console.error(`  ✗ ${j.lang} ${j.key}: ${e.message}`);
-    if (/40[13]/.test(e.message)) { console.error('\nThe API key was refused. Check SARVAM_API_KEY.'); break; }
+    if (/^40[13] /.test(e.message)) { console.error('\nThe API key was refused. Check SARVAM_API_KEY.'); break; }
   }
 }
 console.log(`\n${ok} made${bad ? `, ${bad} failed` : ''}. Now trimming and loudness-matching…\n`);
