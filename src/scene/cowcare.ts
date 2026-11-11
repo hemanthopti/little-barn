@@ -34,6 +34,9 @@ const icon: Record<Tool, string> = {
 };
 
 let cow3d: Cow3D | null = null;
+let canvas3d: HTMLCanvasElement | null = null;
+let modelReady = false;
+let check3dTimer = 0;
 let recording = false;
 let entered = false, selected: Tool = 'pet', actionToken = 0, cleaning = 0, milkLevel = 0;
 let cow!: SVGGElement, cowImg!: SVGImageElement, fx!: SVGGElement, trail!: SVGGElement;
@@ -279,16 +282,21 @@ export function initCowCare() {
   canvas.setAttribute('style', 'display:block;width:100%;height:100%;pointer-events:none');
   obj.appendChild(canvas);
   svg.insertBefore(obj, $('ccCow'));
+  canvas3d = canvas;
   try {
     cow3d = new Cow3D(canvas);
-    cow3d.onLost = () => { $('ccCow').setAttribute('opacity','1'); cow3d = null; };
-    $('ccCowImg').setAttribute('opacity','0');
-    // Hide the duplicate 2D milk bucket and foam; these now exist in the 3D viewport.
-    $('ccBucket').setAttribute('opacity','0');
-    $('ccFoam').setAttribute('opacity','0');
+    cow3d.onLost = () => {
+      // A lost GPU context must never leave children staring at an empty room.
+      showPaintedCow();
+      cow3d = null;
+    };
+    // Do not hide the existing painted cow yet. WebGL context creation does not
+    // mean the browser can actually display a canvas embedded in an SVG foreignObject.
+    // We will only reveal 3D after a visible GPU frame is confirmed.
   } catch (e) {
     console.warn('Cow Care 3D unavailable; continuing with painted cow', e);
     obj.remove();
+    canvas3d = null;
   }
   // Gesture-based, explicitly opt-in Talking Tom-style voice echo. No recording is stored or uploaded.
   const repeat = el('g', { 'data-id': 'cc-repeat', role: 'button', 'aria-label': 'Record and repeat my voice' }, svg);
@@ -312,8 +320,45 @@ export function initCowCare() {
 }
 export function cowCareEnter() {
   entered = true;
-  cow3d?.start(); ++actionToken; selected = 'pet'; cleaning = 0; milkLevel = 0;
-  node('ccFoam').setAttribute('opacity', cow3d ? '0' : '.1');
+  cow3d?.start();
+  // Validate *visible pixels* in the WebGL buffer after scene entry.
+  // If the browser cannot render its SVG foreignObject, the painted cow remains visible.
+  clearTimeout(check3dTimer);
+  if (cow3d && canvas3d && !modelReady) {
+    let attempts = 0;
+    const check = () => {
+      if (!entered || !cow3d || !canvas3d || modelReady) return;
+      const canvas = canvas3d;
+      const gl = canvas.getContext('webgl2');
+      if (gl && canvas.width > 0 && canvas.height > 0) {
+        const points = [[.5,.5],[.42,.55],[.56,.47],[.46,.7],[.6,.6],[.35,.45]];
+        let painted = false;
+        for (const [x,y] of points) {
+          const pixel = new Uint8Array(4);
+          gl.readPixels(Math.floor(canvas.width*x),Math.floor(canvas.height*y),1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
+          if (pixel[3] > 10) { painted=true; break; }
+        }
+        if (painted) {
+          modelReady = true;
+          // SVG fallback stays in the DOM but does not obscure the working 3D canvas.
+          $('ccCowImg').setAttribute('opacity','0');
+          $('ccBucket').setAttribute('opacity','0');
+          $('ccFoam').setAttribute('opacity','0');
+          return;
+        }
+      }
+      if (++attempts < 12) check3dTimer = window.setTimeout(check, 150);
+      else {
+        console.warn('Cow Care: 3D rendered no visible pixels; using painted fallback');
+        showPaintedCow();
+        cow3d?.stop();
+        cow3d = null;
+      }
+    };
+    check3dTimer = window.setTimeout(check, 170);
+  }
+  ++actionToken; selected = 'pet'; cleaning = 0; milkLevel = 0;
+  node('ccFoam').setAttribute('opacity', modelReady ? '0' : '.1');
   node('ccMilkFill').setAttribute('opacity', '0');
   node('ccMilkStream').setAttribute('opacity', '0');
   node('ccFlyingApple').setAttribute('opacity', '0');
@@ -325,6 +370,7 @@ export function cowCareEnter() {
 export function cowCareLeave() {
   entered = false;
   cow3d?.stop();
+  clearTimeout(check3dTimer);
   if (recording) { recording = false; stopMic(); } ++actionToken;
   ghost?.remove(); ghost = null; dragTool = null; fx.innerHTML = ''; trail.innerHTML = '';
 }
@@ -360,4 +406,13 @@ async function echoVoice() {
     stopMic(); recording = false;
     if (!active()) label.textContent = 'Echo!';
   }
+}
+
+/** Re-enable all original artwork whenever the GPU or embed fails. */
+function showPaintedCow() {
+  modelReady = false;
+  $('ccCowImg')?.setAttribute('opacity','1');
+  $('ccBucket')?.setAttribute('opacity','1');
+  $('ccFoam')?.setAttribute('opacity','.1');
+  if (canvas3d) canvas3d.style.display='none';
 }
