@@ -6,258 +6,283 @@ import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
 import { url } from '../art/sprites';
 
-/**
- * Cow Care is deliberately independent of the farm Animal actors.
- * Existing scenes retain their own state, touch objects, animations and art.
- * This room uses the same 1600x900 SVG coordinates and shared pointer router.
- */
+/** Self-contained fifth room: all its objects, effects and state live under cc-. */
 type Tool = 'pet' | 'brush' | 'wash' | 'apple' | 'milk' | 'sleep';
-const TOOLS: { id: Tool; icon: string; label: string; colour: string }[] = [
-  { id: 'pet', icon: '💗', label: 'Pet the cow', colour: '#ffe0e8' },
-  { id: 'brush', icon: '🧽', label: 'Brush the cow', colour: '#ffeabb' },
-  { id: 'wash', icon: '🚿', label: 'Give the cow a bath', colour: '#caf1ff' },
-  { id: 'apple', icon: '🍎', label: 'Feed an apple', colour: '#ffe1c9' },
-  { id: 'milk', icon: '🪣', label: 'Milk the cow', colour: '#daeeff' },
-  { id: 'sleep', icon: '💤', label: 'Put the cow to sleep', colour: '#e6ddff' }
-];
-const PHRASES: Record<Tool, string[]> = {
-  pet: ['Moo! I love cuddles!', 'Hee hee! That tickles!', 'You are my friend!'],
-  brush: ['Oh! That feels nice!', 'Brush, brush! So fluffy!', 'Moooo!'],
-  wash: ['Splash splash!', 'Bubbles! Hee hee!', 'I am all clean!'],
-  apple: ['Crunch crunch! Yummy!', 'Thank moo for my apple!', 'More apples please!'],
-  milk: ['Moooo! Milk for you!', 'Well done!', 'Fresh milk!'],
+const tools: Tool[] = ['pet', 'brush', 'wash', 'apple', 'milk', 'sleep'];
+const phrases: Record<Tool, string[]> = {
+  pet: ['Oh! That tickles!', 'Moo moo! I love cuddles!', 'You are my friend!'],
+  brush: ['Oooh, a back scratch!', 'Brush brush! So fluffy!', 'That feels lovely!'],
+  wash: ['Brr! Splash splash!', 'Bubbles! Hee hee!', 'Now I am squeaky clean!'],
+  apple: ['Crunch! Delicious!', 'Thank moo for the apple!', 'Yummy!'],
+  milk: ['Moooo! Fresh milk!', 'Well done, little farmer!', 'Thank you!'],
   sleep: ['Good night, little friend!', 'Mooo... sweet dreams!']
 };
+const colors: Record<Tool, string> = {
+  pet: '#ffd6de', brush: '#ffe3a5', wash: '#b8efff', apple: '#ffe0c4', milk: '#d7eeff', sleep: '#dfd5ff'
+};
+// Each tool is drawn as glossy vector art rather than a platform-dependent emoji.
+const icon: Record<Tool, string> = {
+  pet: '<path d="M0 35C-60 0-55-45-20-43C-8-42 0-30 0-30S15-55 39-38C63-18 47 7 0 35Z" fill="url(#ccPink)" stroke="#fff1f4" stroke-width="5"/><path d="M-35-20Q-27-40-12-31" fill="none" stroke="white" stroke-opacity=".75" stroke-width="7" stroke-linecap="round"/>',
+  brush: '<g transform="rotate(-25)"><rect x="-23" y="-21" width="46" height="82" rx="17" fill="url(#ccWood)" stroke="#ffe0a2" stroke-width="4"/><rect x="-49" y="-48" width="98" height="61" rx="27" fill="url(#ccGold)" stroke="#fff2bf" stroke-width="5"/><path d="M-38-46V-65M-20-48V-68M0-48V-70M20-48V-68M38-46V-65" stroke="#fff5cc" stroke-width="11" stroke-linecap="round"/></g>',
+  wash: '<g transform="rotate(-23)"><rect x="-13" y="-6" width="25" height="75" rx="12" fill="url(#ccSilver)"/><ellipse cx="0" cy="-19" rx="47" ry="25" fill="url(#ccSilver)" stroke="#f4fbff" stroke-width="5"/><ellipse cy="-26" rx="37" ry="13" fill="#64b6db" stroke="#d9faff" stroke-width="4"/></g><circle cx="-35" cy="40" r="8" fill="#8cddff"/><circle cx="5" cy="47" r="10" fill="#a9eaff"/><circle cx="43" cy="33" r="8" fill="#70d2ff"/>',
+  apple: '<image href="' + url('apple') + '" x="-48" y="-58" width="96" height="114" preserveAspectRatio="xMidYMid meet"/>',
+  milk: '<path d="M-38-35L-29 46Q0 57 29 46L38-35Z" fill="url(#ccSilver)" stroke="#e3f8ff" stroke-width="5"/><ellipse cy="-35" rx="38" ry="12" fill="#d4e3ed" stroke="#94bac8" stroke-width="6"/><ellipse cy="-35" rx="29" ry="6" fill="white"/><path d="M-38-26Q-59-58-29-64M38-26Q59-58 29-64" fill="none" stroke="#93aeba" stroke-width="8" stroke-linecap="round"/>',
+  sleep: '<path d="M18-49A48 48 0 1 0 51 18A40 40 0 0 1 18-49Z" fill="url(#ccMoon)" stroke="#fff6bb" stroke-width="5"/><circle cx="34" cy="-38" r="7" fill="#fff"/><path d="M51-16L57-2L72 2L57 7L52 22L47 7L33 2L47-3Z" fill="#ffeaaa"/>'
+};
 
-let selected: Tool = 'pet';
-let inRoom = false;
-let poseRun = 0;
-let toolGhost: SVGGElement | null = null;
-let activeTool: Tool | null = null;
-let cleaning = 0;
-let bucketMilk = 0;
-let tick = 0;
-let moo: SVGGElement;
-let photo: SVGImageElement;
-let fx: SVGGElement;
-let bucket: SVGGElement;
-let foam: SVGGElement;
-
-const isActive = () => inRoom && state.scene === 'cowcare' && state.started && !state.asleep && $('panel').hidden;
-const get = (id: string) => $(id) as SVGGElement;
-
-function drawCow(pose: 'idle' | 'happy' | 'sleep') {
-  const height = pose === 'sleep' ? 328 : 472;
-  const width = height * (pose === 'sleep' ? 613 / 383 : pose === 'happy' ? 525 / 489 : 556 / 520);
-  photo.setAttribute('href', url('cow-' + pose));
-  photo.setAttribute('x', String(-width / 2));
-  photo.setAttribute('y', String(-height));
-  photo.setAttribute('width', String(width));
-  photo.setAttribute('height', String(height));
+let entered = false, selected: Tool = 'pet', actionToken = 0, cleaning = 0, milkLevel = 0;
+let cow!: SVGGElement, cowImg!: SVGImageElement, fx!: SVGGElement, trail!: SVGGElement;
+let ghost: SVGGElement | null = null, dragTool: Tool | null = null;
+let moving = 0;
+const node = (id: string) => $(id) as SVGGElement;
+const active = () => entered && state.scene === 'cowcare' && state.started && !state.asleep && $('panel').hidden;
+const svgEl = (tag: string, attrs: Record<string, string | number>, parent: Element) => el(tag, attrs, parent);
+const wait = (ms: number, cb: () => void, token: number) =>
+  window.setTimeout(() => { if (entered && token === actionToken) cb(); }, ms);
+function pose(p: 'idle' | 'happy' | 'sleep') {
+  const [w, h] = p === 'idle' ? [519, 485] : p === 'happy' ? [521, 485] : [670, 418];
+  cowImg.setAttribute('href', url('cow-' + p));
+  for (const [k, v] of Object.entries({ x: -w / 2, y: -h, width: w, height: h })) cowImg.setAttribute(k, String(v));
 }
-
-function say(tool: Tool) {
+function face(x = 770, y = 335) { return { x, y }; }
+function speakCow(t: Tool) {
   if (!state.sound) return;
-  // Preserve the existing multilingual game behaviour: non-English uses the supplied cow recording.
-  if (state.lang !== 'en') { speak('cow'); return; }
-  const line = pick(PHRASES[tool]);
+  if (state.lang !== 'en') { speak(t === 'apple' ? 'yummy' : t === 'sleep' ? 'sleep' : 'cow'); return; }
   try {
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(line);
-      utterance.lang = 'en-US';
-      utterance.rate = .94;
-      utterance.pitch = 1.48;
-      speechSynthesis.speak(utterance);
-    } else speak('cow');
+    if (!('speechSynthesis' in window)) { speak('cow'); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(pick(phrases[t]));
+    u.lang = 'en-US'; u.rate = .95; u.pitch = 1.48;
+    speechSynthesis.speak(u);
   } catch { speak('cow'); }
 }
-
-function burst(type: Tool, x = 800, y = 350) {
-  const symbol = type === 'wash' ? '🫧' : type === 'apple' ? '💖' : type === 'milk' ? '🥛' : type === 'sleep' ? '💤' : '✨';
-  for (let i = 0; i < 9; i++) {
-    const item = el('text', { x: 0, y: 0, 'font-size': rnd(27, 43), opacity: 1, 'text-anchor': 'middle', 'pointer-events': 'none' }, fx);
-    item.textContent = symbol;
-    const dx = rnd(-210, 210), dy = rnd(-140, 80), delay = i * 50;
-    window.setTimeout(() => {
-      if (!item.isConnected) return;
-      tween(800, t => {
-        item.setAttribute('transform', 'translate(' + (x + dx * t) + ',' + (y + dy * t - 120 * t) + ')');
-        item.setAttribute('opacity', String(1 - t));
-      }, () => item.remove());
-    }, delay);
-  }
-}
-
-function cowPose(pose: 'happy' | 'sleep' = 'happy') {
-  const run = ++poseRun;
-  drawCow(pose);
-  if (pose === 'sleep') {
-    moo.setAttribute('transform', 'translate(800 731)');
-    return;
-  }
-  tween(700, t => {
-    if (run !== poseRun || !inRoom) return;
-    const lift = Math.sin(Math.PI * t) * 45;
-    const tilt = Math.sin(Math.PI * 2 * t) * 3.5;
-    moo.setAttribute('transform', 'translate(800 ' + (731 - lift) + ') rotate(' + tilt + ')');
-  }, () => {
-    if (run !== poseRun || !inRoom) return;
-    moo.setAttribute('transform', 'translate(800 731)');
-    drawCow('idle');
+function tweenMove(group: Element, ms: number, fn: (t: number) => string, token: number, done?: () => void) {
+  tween(ms, t => { if (!entered || token !== actionToken) return; group.setAttribute('transform', fn(t)); }, () => {
+    if (entered && token === actionToken) done?.();
   });
 }
-
-function drops(x: number, y: number, n = 14) {
-  for (let i = 0; i < n; i++) {
-    const drop = el('ellipse', { cx: 0, cy: 0, rx: rnd(5, 11), ry: rnd(10, 20), fill: '#7bd7ff', opacity: .85, 'pointer-events': 'none' }, fx);
-    const sx = x + rnd(-130, 130), sy = y + rnd(-40, 40), end = sy + rnd(80, 180);
-    tween(670, t => {
-      drop.setAttribute('transform', 'translate(' + (sx + t * 30) + ',' + (sy + (end - sy) * t * t) + ')');
-      drop.setAttribute('opacity', String(1 - t));
-    }, () => drop.remove());
+function particle(kind: 'bubble' | 'heart' | 'spark' | 'drop' | 'milk', x: number, y: number, token: number) {
+  if (!active()) return;
+  const p = svgEl(kind === 'spark' ? 'path' : kind === 'heart' ? 'path' : 'circle', {}, fx);
+  if (kind === 'heart') p.setAttribute('d', 'M0 8C-34-14-23-29-7-24Q0-20 0-14Q17-39 30-18Q40 4 0 32Z');
+  if (kind === 'spark') p.setAttribute('d', 'M0-19L6-6L20 0L6 6L0 20L-6 6L-20 0L-6-6Z');
+  if (kind !== 'heart' && kind !== 'spark') p.setAttribute('r', String(rnd(7, 16)));
+  p.setAttribute('fill', kind === 'heart' ? '#ff8fa9' : kind === 'spark' ? '#ffe37c' : kind === 'drop' ? '#88dfff' : kind === 'milk' ? '#ffffff' : '#d9faff');
+  p.setAttribute('stroke', '#ffffff'); p.setAttribute('stroke-width', '3');
+  p.setAttribute('opacity', '.9'); p.setAttribute('pointer-events', 'none');
+  const dx = rnd(-120, 120), rise = rnd(60, 160), scale = rnd(.6, 1.3);
+  tween(920, t => {
+    p.setAttribute('transform', 'translate(' + (x + dx * t) + ' ' + (y - rise * t + (kind === 'drop' || kind === 'milk' ? 170 * t * t : 0)) + ') scale(' + scale * (1 - .55 * t) + ')');
+    p.setAttribute('opacity', String(1 - t));
+  }, () => p.remove());
+}
+function sprinkle(kind: 'bubble' | 'heart' | 'spark' | 'drop' | 'milk', x: number, y: number, n: number, token: number) {
+  for (let i = 0; i < n; i++) wait(i * 45, () => particle(kind, x + rnd(-70, 70), y + rnd(-30, 30), token), token);
+}
+function toolSvg(t: Tool, x: number, y: number, scale = 1) {
+  return '<g transform="translate(' + x + ' ' + y + ') scale(' + scale + ')">' + icon[t] + '</g>';
+}
+function select(t: Tool) {
+  selected = t;
+  for (const item of tools) {
+    const outline = node('ccBtn-' + item);
+    outline.setAttribute('stroke', item === t ? '#ffbf4d' : '#fffaec');
+    outline.setAttribute('stroke-width', item === t ? '9' : '6');
   }
 }
-
-function react(type: Tool, p?: Pt) {
-  if (!isActive()) return;
-  selected = type;
-  setHighlights();
-  if (type === 'sleep') {
-    ++poseRun; moo.setAttribute('transform', 'translate(800 731)');
-    drawCow('sleep'); sfx('chimeDown'); say(type);
-    burst(type, 850, 360); return;
-  }
-  sfx(type === 'wash' ? 'splash' : type === 'apple' ? 'chomp' : type === 'milk' ? 'pop' : type === 'brush' ? 'rustle' : 'moo');
-  say(type);
-  if (type === 'wash') {
-    cleaning = Math.min(1, cleaning + .28);
-    foam.setAttribute('opacity', String(Math.max(.1, 1 - cleaning)));
-    drops(p?.x || 800, p?.y || 365);
-  } else if (type === 'brush') {
+function happy(kind: 'bob' | 'wiggle' | 'jump' | 'sleep', token: number) {
+  if (kind === 'sleep') { pose('sleep'); cow.setAttribute('transform', 'translate(800 733)'); return; }
+  pose(kind === 'jump' ? 'happy' : 'idle');
+  const dur = kind === 'jump' ? 900 : 700;
+  tweenMove(cow, dur, t => {
+    const bounce = kind === 'jump' ? -70 * Math.sin(Math.PI * t) : kind === 'bob' ? -15 * Math.sin(Math.PI * 2 * t) : -5;
+    const tilt = kind === 'wiggle' ? Math.sin(t * Math.PI * 6) * 5.5 : kind === 'bob' ? Math.sin(t * Math.PI * 4) * 2 : Math.sin(Math.PI * 2 * t) * 2;
+    return 'translate(800 ' + (733 + bounce) + ') rotate(' + tilt + ')';
+  }, token, () => { cow.setAttribute('transform', 'translate(800 733)'); pose('idle'); });
+}
+function milkPour(token: number) {
+  const stream = node('ccMilkStream'), milk = node('ccMilkFill');
+  stream.setAttribute('opacity', '1');
+  const prev = milkLevel;
+  milkLevel = Math.min(1, milkLevel + .26);
+  tween(1000, t => {
+    if (!entered || token !== actionToken) return;
+    stream.setAttribute('opacity', String(t < .8 ? 1 : (1 - t) * 5));
+    milk.setAttribute('opacity', String(.35 + .65 * (prev + (milkLevel - prev) * t)));
+    milk.setAttribute('ry', String(5 + 15 * (prev + (milkLevel - prev) * t)));
+  }, () => stream.setAttribute('opacity', '0'));
+  sprinkle('milk', 1026, 585, 4, token);
+}
+function runAction(t: Tool, target?: Pt) {
+  if (!active()) return;
+  ++actionToken; const token = actionToken;
+  select(t);
+  node('ccWater').setAttribute('opacity', '0');
+  node('ccSponge').setAttribute('opacity', '0');
+  node('ccMilkStream').setAttribute('opacity', '0');
+  node('ccEating').setAttribute('opacity', '0');
+  node('ccFlyingApple').setAttribute('opacity', '0');
+  fx.innerHTML = '';
+  cow.setAttribute('transform', 'translate(800 733)');
+  pose('idle');
+  const p = target || face();
+  if (t === 'pet') {
+    sfx('moo'); speakCow(t); happy('wiggle', token);
+    sprinkle('heart', p.x, p.y, 12, token);
+  } else if (t === 'brush') {
+    sfx('rustle'); speakCow(t); happy('wiggle', token);
+    const sponge = node('ccSponge'); sponge.setAttribute('opacity', '1');
+    tweenMove(sponge, 1200, k => 'translate(' + (810 + Math.sin(k * Math.PI * 7) * 98) + ' ' + (440 + k * 80) + ') rotate(' + (Math.sin(k * Math.PI * 7) * 25) + ')', token, () => sponge.setAttribute('opacity', '0'));
     cleaning = Math.min(1, cleaning + .2);
-    foam.setAttribute('opacity', String(Math.max(.1, 1 - cleaning)));
-  } else if (type === 'milk') {
-    bucketMilk = Math.min(1, bucketMilk + .22);
-    get('ccMilkFill').setAttribute('opacity', String(bucketMilk));
-    drops(1010, 570, 5);
-  } else if (type === 'apple') {
-    const apple = get('ccFlyingApple');
-    apple.setAttribute('opacity', '1');
-    tween(480, t => {
-      apple.setAttribute('transform', 'translate(' + (400 + 410 * t) + ',' + (700 - 390 * t + 120 * t * t) + ') scale(' + (1 - .5 * t) + ')');
-    }, () => apple.setAttribute('opacity', '0'));
+    sprinkle('spark', 860, 440, 12, token);
+  } else if (t === 'wash') {
+    sfx('splash'); speakCow(t); happy('bob', token);
+    node('ccWater').setAttribute('opacity', '1');
+    // Water actually pours from the showerhead across the body; droplets animate independently.
+    for (let i = 0; i < 24; i++) wait(i * 40, () => particle('drop', 745 + rnd(-65, 75), 345 + rnd(-20, 30), token), token);
+    cleaning = Math.min(1, cleaning + .35);
+    node('ccFoam').setAttribute('opacity', String(.9 - .83 * cleaning));
+    wait(1350, () => node('ccWater').setAttribute('opacity', '0'), token);
+    sprinkle('bubble', 800, 425, 15, token);
+  } else if (t === 'apple') {
+    sfx('chomp'); speakCow(t); happy('bob', token);
+    const a = node('ccFlyingApple'); a.setAttribute('opacity', '1');
+    tweenMove(a, 920, k => 'translate(' + (320 + 448 * k) + ' ' + (730 - 400 * k + Math.sin(k * Math.PI) * -75) + ') scale(' + (1 - .84 * k) + ')', token, () => {
+      a.setAttribute('opacity', '0');
+      const eating = node('ccEating'); eating.setAttribute('opacity', '1');
+      wait(550, () => eating.setAttribute('opacity', '0'), token);
+      sprinkle('heart', 780, 350, 8, token);
+    });
+  } else if (t === 'milk') {
+    sfx('pop'); speakCow(t);
+    // Keep the cow standing comfortably while milking: no jumping.
+    happy('bob', token); milkPour(token);
+  } else if (t === 'sleep') {
+    sfx('chimeDown'); speakCow(t); happy('sleep', token);
+    sprinkle('spark', 800, 330, 7, token);
   }
-  cowPose();
-  burst(type, p?.x || 800, p?.y || 365);
 }
-
-function setHighlights() {
-  for (const t of TOOLS) get('ccButton-' + t.id).setAttribute('stroke', selected === t.id ? '#efb844' : '#ffffff');
-}
-
-function toolDrag(id: Tool): Interactive {
-  const home = TOOLS.findIndex(t => t.id === id);
-  const sx = 210 + home * 215;
-  return {
-    tap: () => react(id),
+function makeTool(t: Tool, index: number) {
+  const x = 125 + index * 218, y = 782;
+  const group = svgEl('g', { 'data-id': 'cc-' + t, role: 'button', 'aria-label': t }, node('ccTools'));
+  group.innerHTML = '<rect id="ccBtn-' + t + '" x="' + x + '" y="' + y + '" rx="36" width="172" height="102" fill="' + colors[t] + '" stroke="#fffaec" stroke-width="6" filter="url(#ccToolShadow)"/>' +
+    '<path d="M' + (x + 22) + ' ' + (y + 16) + ' Q' + (x + 85) + ' ' + (y - 3) + ' ' + (x + 146) + ' ' + (y + 16) + '" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="8" stroke-linecap="round"/>' +
+    toolSvg(t, x + 86, y + 51, .68);
+  const obj: Interactive = {
+    tap: () => runAction(t),
     drag: {
-      start(_start, p) {
-        if (!isActive()) return false;
-        activeTool = id;
-        toolGhost = el('g', { 'pointer-events': 'none' }, get('ccDrag')) as SVGGElement;
-        toolGhost.innerHTML = '<circle r="51" fill="#fff9dc" stroke="#ffdc7f" stroke-width="5"/><text y="17" font-size="58" text-anchor="middle">' + TOOLS[home].icon + '</text>';
-        toolGhost.setAttribute('transform', 'translate(' + p.x + ',' + p.y + ')');
+      start(_p, p) {
+        if (!active()) return false;
+        dragTool = t;
+        ghost?.remove();
+        ghost = svgEl('g', { 'pointer-events': 'none' }, trail) as SVGGElement;
+        ghost.innerHTML = '<ellipse cy="20" rx="66" ry="60" fill="#fff9e6" stroke="#fff" stroke-width="7" opacity=".95"/>' + toolSvg(t, 0, 0, 1);
+        ghost.setAttribute('transform', 'translate(' + p.x + ' ' + p.y + ')');
         return true;
       },
-      move(p) { if (toolGhost) toolGhost.setAttribute('transform', 'translate(' + p.x + ',' + p.y + ')'); },
+      move(p) {
+        if (!ghost) return;
+        ghost.setAttribute('transform', 'translate(' + p.x + ' ' + p.y + ')');
+        if (t === 'brush' && active() && p.x > 540 && p.x < 1040 && p.y > 265 && p.y < 720 && moving++ % 9 === 0) {
+          particle('spark', p.x, p.y, actionToken);
+        }
+      },
       end(p) {
-        toolGhost?.remove(); toolGhost = null; activeTool = null;
-        if (p.x > 515 && p.x < 1080 && p.y > 210 && p.y < 740) react(id, p);
+        ghost?.remove(); ghost = null; dragTool = null;
+        if (p.x > 530 && p.x < 1070 && p.y > 210 && p.y < 750) runAction(t, p);
       }
     }
   };
+  objs['cc-' + t] = obj;
 }
-
 export function initCowCare() {
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(NS, 'svg');
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('id', 'cowcare');
   svg.setAttribute('class', 'scene');
   svg.setAttribute('viewBox', '0 0 1600 900');
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  svg.setAttribute('style', 'display:none');
-  svg.innerHTML = [
-    '<defs><linearGradient id="ccWall" x2="0" y2="1"><stop stop-color="#fce8c8"/><stop offset="1" stop-color="#f2bf91"/></linearGradient>',
-    '<linearGradient id="ccFloor" x2="0" y2="1"><stop stop-color="#ecc493"/><stop offset="1" stop-color="#cc8d52"/></linearGradient>',
-    '<linearGradient id="ccWood" x2="0" y2="1"><stop stop-color="#d56b4f"/><stop offset="1" stop-color="#a64036"/></linearGradient></defs>',
+  svg.style.display = 'none';
+  const v = [
+    '<defs>',
+    '<linearGradient id="ccWall" x2=".8" y2="1"><stop stop-color="#f3996d"/><stop offset=".52" stop-color="#ca664f"/><stop offset="1" stop-color="#a94d3a"/></linearGradient>',
+    '<linearGradient id="ccFloor" x2="0" y2="1"><stop stop-color="#f9d5a2"/><stop offset=".6" stop-color="#e0aa71"/><stop offset="1" stop-color="#bf7b49"/></linearGradient>',
+    '<linearGradient id="ccWood" x2=".7" y2="1"><stop stop-color="#ffcc8e"/><stop offset=".5" stop-color="#ca8a4f"/><stop offset="1" stop-color="#9d623d"/></linearGradient>',
+    '<radialGradient id="ccGold"><stop stop-color="#fff8cb"/><stop offset=".6" stop-color="#ffdd78"/><stop offset="1" stop-color="#eaa83c"/></radialGradient>',
+    '<linearGradient id="ccSilver" x2="1" y2=".25"><stop stop-color="#87aab9"/><stop offset=".28" stop-color="#f9ffff"/><stop offset=".6" stop-color="#b5cdd5"/><stop offset="1" stop-color="#638c9d"/></linearGradient>',
+    '<radialGradient id="ccPink"><stop stop-color="#ffcddc"/><stop offset=".65" stop-color="#fc8ba9"/><stop offset="1" stop-color="#d95780"/></radialGradient>',
+    '<linearGradient id="ccMoon" x2="1" y2="1"><stop stop-color="#fff8c3"/><stop offset="1" stop-color="#ddb2ff"/></linearGradient>',
+    '<radialGradient id="ccWindowGlow"><stop stop-color="#fff9bf" stop-opacity=".7"/><stop offset="1" stop-color="#fff9bf" stop-opacity="0"/></radialGradient>',
+    '<filter id="ccToolShadow" x="-30%" y="-40%" width="170%" height="190%"><feDropShadow dx="0" dy="9" stdDeviation="9" flood-color="#603b26" flood-opacity=".3"/></filter>',
+    '<filter id="ccSoftShadow"><feDropShadow dx="0" dy="10" stdDeviation="13" flood-color="#562a23" flood-opacity=".26"/></filter>',
+    '<clipPath id="ccWindowClip"><rect x="92" y="137" width="388" height="313" rx="24"/></clipPath>',
+    '</defs>',
     '<rect width="1600" height="900" fill="url(#ccWall)"/>',
-    '<rect width="1600" height="620" fill="url(#ccWood)"/>',
-    '<path d="M0 70H1600M0 240H1600M0 410H1600M0 580H1600" stroke="#9e3a34" stroke-width="9" opacity=".36"/>',
-    '<path d="M0 60L1600 60M110 0V620M1490 0V620" stroke="#f7c18e" stroke-width="32" opacity=".8"/>',
-    '<rect x="70" y="145" width="420" height="330" rx="35" fill="#ffe7bc" stroke="#ffe8ce" stroke-width="24"/>',
-    '<rect x="92" y="166" width="376" height="286" rx="15" fill="#a9e0f7"/>',
-    '<image href="' + url('bg-hills') + '" x="95" y="160" width="370" height="292" preserveAspectRatio="xMidYMid slice"/>',
-    '<path d="M277 166V454M93 310H470" stroke="#fff1d4" stroke-width="18"/>',
-    '<rect x="1120" y="158" width="370" height="24" rx="12" fill="#ffdb9e"/>',
-    '<image href="' + url('hay') + '" x="1190" y="225" width="260" height="170"/>',
-    '<image href="' + url('bush') + '" x="1160" y="100" width="185" height="105"/>',
-    '<rect y="620" width="1600" height="280" fill="url(#ccFloor)"/>',
-    '<path d="M0 678H1600M0 788H1600M0 886H1600M320 620L220 900M1010 620L900 900M1440 620L1520 900" stroke="#c78b55" stroke-width="5" opacity=".4"/>',
-    '<ellipse cx="800" cy="741" rx="405" ry="78" fill="#bfebda" opacity=".7" />',
-    '<ellipse cx="800" cy="743" rx="355" ry="59" fill="#d4fff2" opacity=".65" />',
-    '<g id="ccFoam" opacity=".8" pointer-events="none"><circle cx="875" cy="402" r="25" fill="#efffff" opacity=".88"/><circle cx="899" cy="423" r="15" fill="#e1f6ff"/><circle cx="843" cy="407" r="17" fill="#fff"/></g>',
-    '<g id="ccCow" transform="translate(800 731)" data-id="cc-cow"><image id="ccPhoto" href="' + url('cow-idle') + '" x="-252" y="-472" width="504" height="472"/>',
-    '<rect x="-238" y="-440" width="476" height="440" rx="95" fill="transparent"/></g>',
-    '<g id="ccBucket" pointer-events="none"><ellipse cx="1060" cy="728" rx="75" ry="19" fill="#fff" opacity=".25"/>',
-    '<path d="M989 619L1005 746Q1060 770 1116 746L1131 619Z" fill="#91afc5" stroke="#e6faff" stroke-width="8"/>',
-    '<ellipse cx="1060" cy="619" rx="73" ry="21" fill="#e8f4fc" stroke="#7a9aa9" stroke-width="9"/>',
-    '<g id="ccMilkFill" opacity="0"><ellipse cx="1060" cy="620" rx="58" ry="12" fill="#fff"/></g>',
-    '<path d="M987 640Q1060 534 1132 640" fill="none" stroke="#768996" stroke-width="13"/></g>',
-    '<g id="ccFlyingApple" opacity="0" pointer-events="none"><image href="' + url('apple') + '" x="-55" y="-75" width="110" height="130"/></g>',
+    '<g opacity=".23" stroke="#873e31" stroke-width="7"><path d="M0 202H1600M0 406H1600M0 600H1600"/></g>',
+    '<g stroke="url(#ccWood)" stroke-width="33" opacity=".95"><path d="M85 0V610M1515 0V610M0 68H1600"/></g>',
+    '<g stroke="#ffe6b4" stroke-width="8" opacity=".5"><path d="M106 0V612M1493 0V612M0 49H1600"/></g>',
+    '<rect x="69" y="115" width="435" height="360" rx="45" fill="#ffe2ad" stroke="#fff3ce" stroke-width="14" filter="url(#ccSoftShadow)"/>',
+    '<g clip-path="url(#ccWindowClip)"><rect x="90" y="136" width="390" height="320" fill="#9ee5fc"/><image href="' + url('bg-hills') + '" x="90" y="139" width="390" height="316" preserveAspectRatio="xMidYMid slice"/><rect x="90" y="136" width="390" height="320" fill="url(#ccWindowGlow)"/></g>',
+    '<path d="M286 135V451M90 298H485" stroke="#ffeccc" stroke-width="17"/>',
+    '<path d="M105 450H479" stroke="#e7b87b" stroke-width="14" stroke-linecap="round"/>',
+    '<path d="M90 118Q60 322 142 454" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="9"/>',
+    '<rect x="1122" y="156" width="373" height="27" rx="14" fill="url(#ccWood)" filter="url(#ccSoftShadow)"/>',
+    '<image href="' + url('hay') + '" x="1201" y="220" width="262" height="185" filter="url(#ccSoftShadow)"/>',
+    '<image href="' + url('bush') + '" x="1188" y="80" width="190" height="110"/>',
+    '<rect y="610" width="1600" height="290" fill="url(#ccFloor)"/>',
+    '<g stroke="#b57f56" stroke-width="5" opacity=".32"><path d="M0 691H1600M0 807H1600M300 610L150 900M920 610L862 900M1420 610L1510 900"/></g>',
+    '<ellipse cx="807" cy="745" rx="405" ry="75" fill="#a5d7c7" opacity=".4" filter="url(#ccSoftShadow)"/>',
+    '<ellipse cx="804" cy="741" rx="359" ry="53" fill="#d9f8e8" opacity=".83"/>',
+    '<ellipse cx="807" cy="741" rx="285" ry="34" fill="#bdebdc" opacity=".75"/>',
+    '<ellipse cx="800" cy="735" rx="226" ry="40" fill="#673c2e" opacity=".14"/>',
+    '<g id="ccCow" transform="translate(800 733)" data-id="cc-cow" filter="url(#ccSoftShadow)"><image id="ccCowImg" href="' + url('cow-idle') + '" x="-260" y="-485" width="519" height="485"/><rect x="-240" y="-460" width="485" height="455" rx="105" fill="transparent"/></g>',
+    // Body foam begins visible, and rinsing reduces it. All effects are behind tool UI.
+    '<g id="ccFoam" opacity=".9" pointer-events="none"><circle cx="879" cy="449" r="25" fill="#f3ffff" opacity=".85"/><circle cx="899" cy="464" r="19" fill="#d9f7ff"/><circle cx="850" cy="458" r="17" fill="white"/><circle cx="862" cy="434" r="13" fill="white"/></g>',
+    '<g id="ccWater" opacity="0" pointer-events="none">',
+    '<path d="M1005 210Q911 272 798 411" stroke="#90e1ff" stroke-width="24" stroke-dasharray="8 24" fill="none" stroke-linecap="round" opacity=".83"/>',
+    '<path d="M1023 214Q963 310 873 440" stroke="#dcfaff" stroke-width="14" stroke-dasharray="12 28" fill="none" opacity=".9"/>',
+    '<path d="M990 206Q890 262 747 408" stroke="#b5f0ff" stroke-width="11" stroke-dasharray="11 20" fill="none"/>',
+    toolSvg('wash', 1050, 202, 1.2),'</g>',
+    '<g id="ccSponge" opacity="0" pointer-events="none">',toolSvg('brush',0,0,1.1),'</g>',
+    '<g id="ccBucket" pointer-events="none" filter="url(#ccSoftShadow)"><path d="M984 613L998 743Q1055 767 1112 743L1127 613Z" fill="url(#ccSilver)" stroke="#eaf8ff" stroke-width="6"/>',
+    '<ellipse cx="1055" cy="614" rx="72" ry="19" fill="#e8faff" stroke="#7797a5" stroke-width="8"/>',
+    '<ellipse id="ccMilkFill" cx="1055" cy="614" rx="60" ry="6" fill="white" opacity="0"/>',
+    '<path d="M985 624Q1055 508 1126 624" fill="none" stroke="#8eafbf" stroke-width="13"/></g>',
+    '<g id="ccMilkStream" opacity="0" pointer-events="none"><path d="M933 563Q962 620 1035 631" stroke="#fff" stroke-width="12" fill="none" stroke-dasharray="28 18" stroke-linecap="round"/></g>',
+    '<g id="ccFlyingApple" opacity="0" pointer-events="none"><image href="' + url('apple') + '" x="-55" y="-65" width="110" height="130"/></g>',
+    '<g id="ccEating" opacity="0" pointer-events="none"><path d="M762 370Q788 377 813 371" fill="none" stroke="#fff7e2" stroke-width="8" stroke-dasharray="6 12"/></g>',
     '<g id="ccFx" pointer-events="none"></g>',
     '<g id="ccDrag" pointer-events="none"></g>',
+    '<rect x="0" y="766" width="1600" height="134" fill="#f9d8a7" opacity=".22" pointer-events="none"/>',
     '<g id="ccTools"></g>'
-  ].join('');
+  ];
+  svg.innerHTML = v.join('');
   $('rooms').before(svg);
-  moo = get('ccCow');
-  photo = $('ccPhoto') as SVGImageElement;
-  fx = get('ccFx');
-  bucket = get('ccBucket');
-  foam = get('ccFoam');
-  const rack = get('ccTools');
-  TOOLS.forEach((t, i) => {
-    const x = 130 + i * 215;
-    const b = el('g', { 'data-id': 'cc-' + t.id, role: 'button', 'aria-label': t.label }, rack);
-    b.innerHTML = '<rect id="ccButton-' + t.id + '" x="' + x + '" y="789" width="162" height="92" rx="35" fill="' + t.colour + '" stroke="#ffffff" stroke-width="7"/>' +
-      '<text x="' + (x + 81) + '" y="855" font-size="56" text-anchor="middle" pointer-events="none">' + t.icon + '</text>';
-    objs['cc-' + t.id] = toolDrag(t.id);
-  });
+  cow = node('ccCow'); cowImg = $('ccCowImg') as SVGImageElement;
+  fx = node('ccFx'); trail = node('ccDrag');
+  tools.forEach(makeTool);
   objs['cc-cow'] = {
-    tap: (p) => react(selected, p),
-    hold: { start: () => react('pet'), end: () => { } },
-    drag: { start: () => isActive(), move: p => {
-      if (++tick % 7 === 0) burst('pet', p.x, p.y);
-    }, end: p => react('pet', p) }
+    tap: p => runAction(selected, p),
+    hold: { start: () => runAction('pet'), end: () => {} },
+    drag: {
+      start: () => active(),
+      move: p => { if (++moving % 14 === 0) particle('heart', p.x, p.y, actionToken); },
+      end: p => runAction('pet', p)
+    }
   };
-  setHighlights();
+  select('pet');
 }
-
 export function cowCareEnter() {
-  inRoom = true;
-  selected = 'pet'; cleaning = 0; bucketMilk = 0;
-  foam.setAttribute('opacity', '.8');
-  get('ccMilkFill').setAttribute('opacity', '0');
-  get('ccFlyingApple').setAttribute('opacity', '0');
-  ++poseRun;
-  moo.setAttribute('transform', 'translate(800 731)');
-  drawCow('idle'); setHighlights();
+  entered = true; ++actionToken; selected = 'pet'; cleaning = 0; milkLevel = 0;
+  node('ccFoam').setAttribute('opacity', '.9');
+  node('ccMilkFill').setAttribute('opacity', '0');
+  node('ccMilkStream').setAttribute('opacity', '0');
+  node('ccFlyingApple').setAttribute('opacity', '0');
+  node('ccWater').setAttribute('opacity', '0');
+  node('ccSponge').setAttribute('opacity', '0');
+  cow.setAttribute('transform', 'translate(800 733)'); pose('idle'); select('pet');
   sfx('moo');
 }
-
 export function cowCareLeave() {
-  inRoom = false; ++poseRun;
-  toolGhost?.remove(); toolGhost = null; activeTool = null;
-  fx.innerHTML = '';
-  get('ccDrag').innerHTML = '';
+  entered = false; ++actionToken;
+  ghost?.remove(); ghost = null; dragTool = null; fx.innerHTML = ''; trail.innerHTML = '';
 }
