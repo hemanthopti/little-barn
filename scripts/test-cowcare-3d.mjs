@@ -13,7 +13,8 @@ try{
   await page.locator('#splash').dispatchEvent('pointerdown',{pointerId:1,pointerType:'mouse'});
   await page.waitForTimeout(350);
   await page.locator('button[aria-label="Play with and care for the cow"]').dispatchEvent('pointerdown',{pointerId:2,pointerType:'mouse'});
-  await page.waitForTimeout(3000);
+  await page.waitForFunction(() => { const o=document.querySelector('#cc3d-overlay'); return o && getComputedStyle(o).opacity === '1'; },{timeout:12000});
+  await page.waitForTimeout(350);
   const result=await page.evaluate(()=>{
     const overlay=document.querySelector('#cc3d-overlay');
     const canvas=document.querySelector('#cc3d-canvas');
@@ -36,6 +37,7 @@ try{
   assert.equal(result.sceneDisplay,'block','Cow Care SVG must be visible');
   assert.equal(result.overlay,true,'WebGL HTML overlay must exist');
   assert.equal(result.opacity,'1','WebGL overlay must be visible after confirmed frame');
+  assert.equal(result.cowOpacity,'0','Only hide painted cow after WebGL is visibly active');
   assert.ok(result.dimensions?.[0]>100&&result.dimensions?.[1]>100,'WebGL canvas must have non-zero dimensions');
   assert.ok(result.toolCount>=6,'Touch tools must still be present');
   assert.equal(failures.length,0,'No uncaught errors');
