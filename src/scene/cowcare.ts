@@ -5,6 +5,8 @@ import { state } from '../core/state';
 import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
 import { url } from '../art/sprites';
+import { Cow3D } from './cow3d';
+import { getMic, stopMic, recordClip } from '../audio/mic';
 
 /** Self-contained fifth room: all its objects, effects and state live under cc-. */
 type Tool = 'pet' | 'brush' | 'wash' | 'apple' | 'milk' | 'sleep';
@@ -30,6 +32,8 @@ const icon: Record<Tool, string> = {
   sleep: '<path d="M18-49A48 48 0 1 0 51 18A40 40 0 0 1 18-49Z" fill="url(#ccMoon)" stroke="#fff6bb" stroke-width="5"/><circle cx="34" cy="-38" r="7" fill="#fff"/><path d="M51-16L57-2L72 2L57 7L52 22L47 7L33 2L47-3Z" fill="#ffeaaa"/>'
 };
 
+let cow3d: Cow3D | null = null;
+let recording = false;
 let entered = false, selected: Tool = 'pet', actionToken = 0, cleaning = 0, milkLevel = 0;
 let cow!: SVGGElement, cowImg!: SVGImageElement, fx!: SVGGElement, trail!: SVGGElement;
 let ghost: SVGGElement | null = null, dragTool: Tool | null = null;
@@ -115,6 +119,7 @@ function milkPour(token: number) {
 }
 function runAction(t: Tool, target?: Pt) {
   if (!active()) return;
+  cow3d?.act(t);
   ++actionToken; const token = actionToken;
   select(t);
   node('ccWater').setAttribute('opacity', '0');
@@ -257,6 +262,30 @@ export function initCowCare() {
   ];
   svg.innerHTML = v.join('');
   $('rooms').before(svg);
+  // Browser-native GPU rendering, positioned behind the original SVG hit targets/tool layer.
+  // The existing painted cow remains the fallback for devices without WebGL2.
+  const obj = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+  obj.setAttribute('x', '340'); obj.setAttribute('y', '40');
+  obj.setAttribute('width', '980'); obj.setAttribute('height', '705');
+  obj.setAttribute('pointer-events', 'none');
+  const canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas') as HTMLCanvasElement;
+  canvas.setAttribute('style', 'display:block;width:100%;height:100%;pointer-events:none');
+  obj.appendChild(canvas);
+  svg.insertBefore(obj, $('ccCow'));
+  try {
+    cow3d = new Cow3D(canvas);
+    cow3d.onLost = () => { $('ccCow').setAttribute('opacity','1'); cow3d = null; };
+    $('ccCowImg').setAttribute('opacity','0');
+  } catch (e) {
+    console.warn('Cow Care 3D unavailable; continuing with painted cow', e);
+    obj.remove();
+  }
+  // Gesture-based, explicitly opt-in Talking Tom-style voice echo. No recording is stored or uploaded.
+  const repeat = el('g', { 'data-id': 'cc-repeat', role: 'button', 'aria-label': 'Record and repeat my voice' }, svg);
+  repeat.innerHTML = '<rect x="660" y="85" width="235" height="90" rx="39" fill="#fff5df" fill-opacity=".92" stroke="#ffd593" stroke-width="7"/>' +
+    '<circle cx="719" cy="130" r="28" fill="#ff8c9f"/><rect x="710" y="111" width="18" height="30" rx="9" fill="#fff"/><path d="M704 130Q719 158 734 130M719 156V164" fill="none" stroke="#fff" stroke-width="5"/>' +
+    '<text id="ccRepeatLabel" x="785" y="142" font-family="Baloo 2,sans-serif" font-size="24" font-weight="800" fill="#66412c" text-anchor="middle">Echo!</text>';
+  objs['cc-repeat'] = { tap: () => { void echoVoice(); } };
   cow = node('ccCow'); cowImg = $('ccCowImg') as SVGImageElement;
   fx = node('ccFx'); trail = node('ccDrag');
   tools.forEach(makeTool);
@@ -272,8 +301,9 @@ export function initCowCare() {
   select('pet');
 }
 export function cowCareEnter() {
-  entered = true; ++actionToken; selected = 'pet'; cleaning = 0; milkLevel = 0;
-  node('ccFoam').setAttribute('opacity', '.9');
+  entered = true;
+  cow3d?.start(); ++actionToken; selected = 'pet'; cleaning = 0; milkLevel = 0;
+  node('ccFoam').setAttribute('opacity', '.1');
   node('ccMilkFill').setAttribute('opacity', '0');
   node('ccMilkStream').setAttribute('opacity', '0');
   node('ccFlyingApple').setAttribute('opacity', '0');
@@ -283,6 +313,38 @@ export function cowCareEnter() {
   sfx('moo');
 }
 export function cowCareLeave() {
-  entered = false; ++actionToken;
+  entered = false;
+  cow3d?.stop();
+  if (recording) { recording = false; stopMic(); } ++actionToken;
   ghost?.remove(); ghost = null; dragTool = null; fx.innerHTML = ''; trail.innerHTML = '';
+}
+
+/** The child deliberately taps the microphone icon; no passive listening. */
+async function echoVoice() {
+  if (!active() || recording || !('MediaRecorder' in window)) return;
+  recording = true;
+  const label = $('ccRepeatLabel') as SVGTextElement;
+  label.textContent = 'Listening';
+  const stream = await getMic();
+  if (!stream || !active()) { recording = false; label.textContent = 'Echo!'; return; }
+  try {
+    const capture = recordClip(stream, 2600);
+    const sound = await capture.done;
+    stopMic();
+    if (active() && sound.size) {
+      label.textContent = 'Moo!';
+      const uri = URL.createObjectURL(sound);
+      const audio = new Audio(uri);
+      audio.playbackRate = 1.32;
+      audio.onended = () => { URL.revokeObjectURL(uri); label.textContent = 'Echo!'; };
+      audio.onerror = () => { URL.revokeObjectURL(uri); label.textContent = 'Echo!'; };
+      await audio.play();
+      cow3d?.act('pet');
+    }
+  } catch (err) {
+    console.warn('Cow voice repeat unavailable',err);
+  } finally {
+    stopMic(); recording = false;
+    if (!active()) label.textContent = 'Echo!';
+  }
 }
