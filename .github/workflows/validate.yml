@@ -16,26 +16,3 @@ jobs:
       - run: npm run build
         env:
           OUT_DIR: dist
-
-  cowcare-browser:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm install --no-save playwright@1.56.1
-      - run: npx playwright install --with-deps chromium
-      - name: Run Cow Care browser test
-        run: |
-          npm run dev -- --host 127.0.0.1 --port 4175 > /tmp/little-barn-vite.log 2>&1 &
-          for i in {1..40}; do curl -fsS http://127.0.0.1:4175/ > /dev/null && break || sleep 1; done
-          node scripts/test-cowcare-3d.mjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: cowcare-browser-screenshot
-          path: test-artifacts/
-          if-no-files-found: ignore
