@@ -12,7 +12,7 @@ const tr=(x:number,y:number,z:number)=>{const a=ident();a[12]=x;a[13]=y;a[14]=z;
 const sc=(x:number,y:number,z:number)=>[x,0,0,0,0,y,0,0,0,0,z,0,0,0,0,1];
 const rot=(t:number)=>{const c=Math.cos(t),s=Math.sin(t);return [c,s,0,0,-s,c,0,0,0,0,1,0,0,0,0,1]};
 function camera(aspect:number){const f=1/Math.tan(.39),n=.1,z=60,target:Vec=[0,1.48,0];const zz:Vec=[eye[0]-target[0],eye[1]-target[1],eye[2]-target[2]],l=Math.hypot(...zz);zz.forEach((v,i)=>zz[i]=v/l);const xx:Vec=[zz[2],0,-zz[0]],yy:Vec=[zz[1]*xx[2]-zz[2]*xx[1],zz[2]*xx[0]-zz[0]*xx[2],zz[0]*xx[1]-zz[1]*xx[0]];const v=[xx[0],yy[0],zz[0],0,xx[1],yy[1],zz[1],0,xx[2],yy[2],zz[2],0,-xx[0]*eye[0]-xx[1]*eye[1]-xx[2]*eye[2],-yy[0]*eye[0]-yy[1]*eye[1]-yy[2]*eye[2],-zz[0]*eye[0]-zz[1]*eye[1]-zz[2]*eye[2],1];return product([f/aspect,0,0,0,0,f,0,0,0,0,(z+n)/(n-z),-1,0,0,2*z*n/(n-z),0],v)}
-type Part={n:string;p:Vec;s:Vec;c:Vec;spot?:boolean};
+type Part={n:string;p:number[];s:number[];c:number[];spot?:boolean};
 const white:Vec=[.99,.96,.89],dark:Vec=[.23,.18,.16],pink:Vec=[1,.6,.62],brown:Vec=[.36,.22,.16],horn:Vec=[1,.87,.58];
 const parts:Part[]=[
 {n:'body',p:[.22,1.35,-.18],s:[1.3,.85,.78],c:white,spot:true},
@@ -95,7 +95,7 @@ export class Cow3D{
  if(part.n==='head'||part.n.startsWith('ear')||part.n.startsWith('horn')||part.n.startsWith('hair')||part.n==='muzzle'||part.n.startsWith('eye')||part.n.startsWith('iris')||part.n.startsWith('pupil')||part.n.startsWith('shine')||part.n.startsWith('nose')||part.n==='patch'||part.n==='smile'){p[1]+=wiggle;ang+=wiggle*.55}
  if(part.n.startsWith('eye')||part.n.startsWith('iris')||part.n.startsWith('pupil')||part.n.startsWith('shine'))s[1]*=blink;
  p[1]+=bob;if(a==='sleep'){p[1]-=.16;s[1]*=.94}
- this.draw(p,s,part.c,ang,!!part.spot);
+ this.draw(p as Vec,s as Vec,part.c as Vec,ang,!!part.spot);
  }
  // Milk bucket and glossy milk filling.
  this.draw([1.77,.48,1.05],[.39,.43,.37],[.63,.77,.85]);this.draw([1.77,.86,1.05],[.4,.055,.38],[.91,.96,1]);if(this.milk)this.draw([1.77,.89,1.05],[.31,.04,.3],[1,1,.94]);
