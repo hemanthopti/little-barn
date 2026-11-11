@@ -40,3 +40,11 @@ jobs:
           protocol: ftps
           local-dir: ./dist/
           server-dir: ${{ secrets.FTP_DIR }}
+      - name: Check the live site serves this build
+        if: env.HAS_FTP == 'true'
+        run: |
+          sleep 5
+          live=$(curl -s "https://play.starlinkwatch.com/index.html?nocache=$RANDOM" | grep -o 'assets/index-[^"]*\.js' | head -1)
+          built=$(grep -o 'assets/index-[^"]*\.js' dist/index.html | head -1)
+          echo "built: $built"; echo "live:  $live"
+          if [ "$live" = "$built" ]; then echo "Live site is up to date."; else echo "::warning::play.starlinkwatch.com is serving a different build ($live). FTP_DIR may point at another folder than the one the subdomain uses."; fi
