@@ -7,6 +7,7 @@ import { speak } from '../audio/speech';
 import { url } from '../art/sprites';
 import { Cow3D } from './cow3d';
 import { getMic, stopMic, recordClip } from '../audio/mic';
+import { AC, master } from '../audio/synth';
 
 /** Self-contained fifth room: all its objects, effects and state live under cc-. */
 type Tool = 'pet' | 'brush' | 'wash' | 'apple' | 'milk' | 'sleep';
@@ -342,13 +343,16 @@ async function echoVoice() {
     stopMic();
     if (active() && sound.size) {
       label.textContent = 'Moo!';
-      const uri = URL.createObjectURL(sound);
-      const audio = new Audio(uri);
-      audio.playbackRate = 1.32;
-      audio.onended = () => { URL.revokeObjectURL(uri); label.textContent = 'Echo!'; };
-      audio.onerror = () => { URL.revokeObjectURL(uri); label.textContent = 'Echo!'; };
-      await audio.play();
-      cow3d?.act('pet');
+      const ctx = AC();
+      if (ctx && master && state.sound) {
+        const decoded = await ctx.decodeAudioData(await sound.arrayBuffer());
+        const player = ctx.createBufferSource();
+        player.buffer = decoded; player.playbackRate.value = 1.32;
+        player.connect(master);
+        player.onended = () => { label.textContent = 'Echo!'; };
+        player.start();
+        cow3d?.act('pet');
+      } else label.textContent = 'Echo!';
     }
   } catch (err) {
     console.warn('Cow voice repeat unavailable',err);
