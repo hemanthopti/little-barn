@@ -5,6 +5,7 @@ import { registerSW } from 'virtual:pwa-register';
 
 import { $ } from './core/util';
 import { initView } from './core/view';
+import { initMusic } from './audio/music';
 import { state, changed } from './core/state';
 import { initInput, input } from './core/input';
 import { AC } from './audio/synth';
@@ -44,6 +45,7 @@ initFence();
 initFindIt();
 initHideSeek();
 initVisitors();
+initMusic();
 initKitchen();
 initLearn();
 initScenes();

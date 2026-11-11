@@ -5,6 +5,7 @@ import { Animal, registerFeeders } from './animal';
 import { sparkleAt, pulseRing } from './fx';
 import { getMic, recordClip, stopMic } from '../audio/mic';
 import { AC, master } from '../audio/synth';
+import { duck } from '../audio/music';
 
 export let yard: Animal[] = [];
 
@@ -46,6 +47,7 @@ async function voiceMirror(p: Animal) {
   const mic = await getMic();
   if (!mic) { p.busy = false; p.bounce(); p.say(); return; }
   const h = p.head(); pulseRing(h.x, h.y, 2500);
+  duck(4.5, 0); // silence the music so the parrot hears the child, not the tune
   let blob: Blob;
   try { blob = await recordClip(mic, 2500).done; } finally { stopMic(); }
   const a = AC();

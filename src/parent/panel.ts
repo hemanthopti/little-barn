@@ -42,6 +42,7 @@ export function initPanel() {
     state.timer = Number(b.dataset.v); save(); restartTimer();
   });
   $('tSound').addEventListener('click', () => { state.sound = !state.sound; save(); changed(); });
+  $('tMusic').addEventListener('click', () => { state.music = !state.music; save(); changed(); });
   $('tTips').addEventListener('click', () => { state.tips = !state.tips; save(); changed(); });
   $('tFind').addEventListener('click', () => { state.findit = !state.findit; save(); changed(); });
   $('tMirror').addEventListener('click', () => { state.mirror = !state.mirror; state.micBlocked = false; save(); changed(); });
@@ -127,6 +128,7 @@ function render() {
   $('timerNote').textContent = state.asleep ? 'The farm is asleep. Tap Wake up to play again.'
     : state.timer ? `About ${minutesLeft()} min left, then the animals fall asleep` : 'The animals fall asleep when time is up';
   $('tSound').classList.toggle('on', state.sound);
+  $('tMusic').classList.toggle('on', state.music);
   $('tTips').classList.toggle('on', state.tips);
   $('tFind').classList.toggle('on', state.findit);
   $('tMirror').classList.toggle('on', state.mirror);

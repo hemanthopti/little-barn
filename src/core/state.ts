@@ -13,6 +13,8 @@ export const state = {
   playStart: 0,
   asleep: false,
   tips: false,
+  /** Gentle background tune */
+  music: true,
   /** "Where is the …?" questions */
   findit: true,
   /** Which room is showing (not saved: play always starts on the farm). */
@@ -28,10 +30,11 @@ try {
   if ([0, 10, 15, 20].includes(saved.timer)) state.timer = saved.timer;
   if (typeof saved.tips === 'boolean') state.tips = saved.tips;
   if (typeof saved.findit === 'boolean') state.findit = saved.findit;
+  if (typeof saved.music === 'boolean') state.music = saved.music;
 } catch { /* storage unavailable: defaults are fine */ }
 
 export function save() {
-  try { localStorage.setItem(KEY, JSON.stringify({ lang: state.lang, sound: state.sound, mirror: state.mirror, timer: state.timer, tips: state.tips, findit: state.findit })); } catch { }
+  try { localStorage.setItem(KEY, JSON.stringify({ lang: state.lang, sound: state.sound, mirror: state.mirror, timer: state.timer, tips: state.tips, findit: state.findit, music: state.music })); } catch { }
 }
 
 /** Anything that shows state (the parent panel) listens here. */

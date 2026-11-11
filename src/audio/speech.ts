@@ -1,3 +1,4 @@
+import { duck } from './music';
 import { state, changed, Lang } from '../core/state';
 import { WORDS, LANGS } from '../content/words';
 import { playWord } from './clips';
@@ -19,6 +20,7 @@ export const voicesKnown = () => voices.length > 0;
 /** Say a word: family recording first, then a shipped clip, then the device voice, then English if the language has no voice. */
 export function speak(key: string) {
   if (!state.sound) return;
+  duck();
   if (playFamily(key) || playWord(key)) return;
   const w = WORDS[key]; if (!w || !hasSpeech) return;
   let l = state.lang, v = voiceFor(l);
