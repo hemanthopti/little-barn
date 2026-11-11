@@ -5,9 +5,6 @@ import { state } from '../core/state';
 import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
 import { url } from '../art/sprites';
-import { Cow3D } from './cow3d';
-import { getMic, stopMic, recordClip } from '../audio/mic';
-import { AC, master } from '../audio/synth';
 
 /** Self-contained fifth room: all its objects, effects and state live under cc-. */
 type Tool = 'pet' | 'brush' | 'wash' | 'apple' | 'milk' | 'sleep';
@@ -33,13 +30,6 @@ const icon: Record<Tool, string> = {
   sleep: '<path d="M18-49A48 48 0 1 0 51 18A40 40 0 0 1 18-49Z" fill="url(#ccMoon)" stroke="#fff6bb" stroke-width="5"/><circle cx="34" cy="-38" r="7" fill="#fff"/><path d="M51-16L57-2L72 2L57 7L52 22L47 7L33 2L47-3Z" fill="#ffeaaa"/>'
 };
 
-let cow3d: Cow3D | null = null;
-let canvas3d: HTMLCanvasElement | null = null;
-let stage3d: HTMLDivElement | null = null;
-let resize3d: (() => void) | null = null;
-let modelReady = false;
-let check3dTimer = 0;
-let recording = false;
 let entered = false, selected: Tool = 'pet', actionToken = 0, cleaning = 0, milkLevel = 0;
 let cow!: SVGGElement, cowImg!: SVGImageElement, fx!: SVGGElement, trail!: SVGGElement;
 let ghost: SVGGElement | null = null, dragTool: Tool | null = null;
@@ -125,15 +115,8 @@ function milkPour(token: number) {
 }
 function runAction(t: Tool, target?: Pt) {
   if (!active()) return;
-  cow3d?.act(t);
   ++actionToken; const token = actionToken;
   select(t);
-  // GPU renderer handles all reactions when available; do not double-render legacy 2D effects.
-  if (cow3d) {
-    sfx(t === 'wash' ? 'splash' : t === 'apple' ? 'chomp' : t === 'brush' ? 'rustle' : t === 'sleep' ? 'chimeDown' : 'moo');
-    speakCow(t);
-    return;
-  }
   node('ccWater').setAttribute('opacity', '0');
   node('ccSponge').setAttribute('opacity', '0');
   node('ccMilkStream').setAttribute('opacity', '0');
@@ -274,67 +257,6 @@ export function initCowCare() {
   ];
   svg.innerHTML = v.join('');
   $('rooms').before(svg);
-
-  // WebGL2 must live in a regular HTML canvas, NOT an SVG foreignObject.
-  // Safari/iOS may silently fail to composite WebGL inside SVG even with a valid context.
-  // The overlay is an absolutely positioned sibling of the SVG, with pointer-events disabled.
-  // All original SVG controls and scene input remain functional underneath.
-  const host = document.createElement('div');
-  host.id = 'cc3d-overlay';
-  host.style.cssText = 'position:absolute;pointer-events:none;z-index:2;overflow:hidden;opacity:0;transition:opacity .22s linear;';
-  const canvas = document.createElement('canvas');
-  canvas.id = 'cc3d-canvas';
-  canvas.style.cssText = 'display:block;width:100%;height:100%;pointer-events:none';
-  host.appendChild(canvas);
-  svg.after(host);
-  stage3d = host;
-  canvas3d = canvas;
-  resize3d = () => {
-    const app = $('app') as HTMLDivElement;
-    if (!app || !stage3d) return;
-    const width=app.clientWidth, height=app.clientHeight;
-    const s=Math.min(width/1600,height/900);
-    const padX=(width-1600*s)*.5, padY=(height-900*s)*.5;
-    Object.assign(stage3d.style,{
-      left: (padX+340*s)+'px',
-      top: (padY+175*s)+'px',
-      width: (980*s)+'px',
-      height: (705*s)+'px'
-    });
-  };
-  resize3d();
-  window.addEventListener('resize',resize3d);
-  window.addEventListener('orientationchange',resize3d);
-  try {
-    cow3d = new Cow3D(canvas);
-    cow3d.onLost = () => {
-      showPaintedCow();
-      cow3d = null;
-    };
-    cow3d.onFrame = () => {
-      if (!entered || !stage3d || !canvas3d) return;
-      if (canvas3d.width < 10 || canvas3d.height < 10) return;
-      modelReady=true;
-      clearTimeout(check3dTimer);
-      // Do not hide the fallback before a real WebGL frame has been drawn.
-      $('ccCowImg').setAttribute('opacity','0');
-      $('ccBucket').setAttribute('opacity','0');
-      $('ccFoam').setAttribute('opacity','0');
-      stage3d.style.opacity='1';
-      stage3d.style.display='block';
-    };
-  } catch (e) {
-    console.warn('Cow Care WebGL2 unavailable; displaying painted cow', e);
-    host.remove();
-    stage3d=null;
-    canvas3d=null;
-  }
-  // Gesture-based, explicitly opt-in Talking Tom-style voice echo. No recording is stored or uploaded.
-  const repeat = el('g', { 'data-id': 'cc-repeat', role: 'button', 'aria-label': 'Record and repeat my voice' }, svg);
-  repeat.innerHTML = '<rect x="660" y="85" width="235" height="90" rx="39" fill="#fff5df" fill-opacity=".92" stroke="#ffd593" stroke-width="7"/>' +
-    '<circle cx="719" cy="130" r="28" fill="#ff8c9f"/><rect x="710" y="111" width="18" height="30" rx="9" fill="#fff"/><path d="M704 130Q719 158 734 130M719 156V164" fill="none" stroke="#fff" stroke-width="5"/>' +
-    '<text id="ccRepeatLabel" x="785" y="142" font-family="Baloo 2,sans-serif" font-size="24" font-weight="800" fill="#66412c" text-anchor="middle">Echo!</text>';
-  objs['cc-repeat'] = { tap: () => { void echoVoice(); } };
   cow = node('ccCow'); cowImg = $('ccCowImg') as SVGImageElement;
   fx = node('ccFx'); trail = node('ccDrag');
   tools.forEach(makeTool);
@@ -350,22 +272,8 @@ export function initCowCare() {
   select('pet');
 }
 export function cowCareEnter() {
-  entered = true;
-  resize3d?.();
-  if (modelReady && stage3d) stage3d.style.opacity='1';
-  cow3d?.start();
-  // The fallback is kept until Cow3D confirms a GPU frame inside its render loop.
-  clearTimeout(check3dTimer);
-  if (cow3d && !modelReady) {
-    check3dTimer=window.setTimeout(() => {
-      if (entered && !modelReady) {
-        console.warn('Cow Care WebGL scene did not render; painted cow retained');
-        cow3d?.stop(); cow3d = null; showPaintedCow();
-      }
-    }, 3000);
-  }
-  ++actionToken; selected = 'pet'; cleaning = 0; milkLevel = 0;
-  node('ccFoam').setAttribute('opacity', modelReady ? '0' : '.1');
+  entered = true; ++actionToken; selected = 'pet'; cleaning = 0; milkLevel = 0;
+  node('ccFoam').setAttribute('opacity', '.9');
   node('ccMilkFill').setAttribute('opacity', '0');
   node('ccMilkStream').setAttribute('opacity', '0');
   node('ccFlyingApple').setAttribute('opacity', '0');
@@ -375,52 +283,6 @@ export function cowCareEnter() {
   sfx('moo');
 }
 export function cowCareLeave() {
-  entered = false;
-  cow3d?.stop();
-  if (stage3d) stage3d.style.opacity='0';
-  clearTimeout(check3dTimer);
-  if (recording) { recording = false; stopMic(); } ++actionToken;
+  entered = false; ++actionToken;
   ghost?.remove(); ghost = null; dragTool = null; fx.innerHTML = ''; trail.innerHTML = '';
-}
-
-/** The child deliberately taps the microphone icon; no passive listening. */
-async function echoVoice() {
-  if (!active() || recording || !('MediaRecorder' in window)) return;
-  recording = true;
-  const label = $('ccRepeatLabel') as SVGTextElement;
-  label.textContent = 'Listening';
-  const stream = await getMic();
-  if (!stream || !active()) { recording = false; label.textContent = 'Echo!'; return; }
-  try {
-    const capture = recordClip(stream, 2600);
-    const sound = await capture.done;
-    stopMic();
-    if (active() && sound.size) {
-      label.textContent = 'Moo!';
-      const ctx = AC();
-      if (ctx && master && state.sound) {
-        const decoded = await ctx.decodeAudioData(await sound.arrayBuffer());
-        const player = ctx.createBufferSource();
-        player.buffer = decoded; player.playbackRate.value = 1.32;
-        player.connect(master);
-        player.onended = () => { label.textContent = 'Echo!'; };
-        player.start();
-        cow3d?.act('pet');
-      } else label.textContent = 'Echo!';
-    }
-  } catch (err) {
-    console.warn('Cow voice repeat unavailable',err);
-  } finally {
-    stopMic(); recording = false;
-    if (!active()) label.textContent = 'Echo!';
-  }
-}
-
-/** Re-enable all original artwork whenever the GPU or embed fails. */
-function showPaintedCow() {
-  modelReady = false;
-  $('ccCowImg')?.setAttribute('opacity','1');
-  $('ccBucket')?.setAttribute('opacity','1');
-  $('ccFoam')?.setAttribute('opacity','.1');
-  if (stage3d) { stage3d.style.opacity='0'; stage3d.style.display='none'; }
 }
