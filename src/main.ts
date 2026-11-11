@@ -32,6 +32,7 @@ import { initScenes } from './scene/scenes';
 import { initLearn } from './scene/learn';
 import { initMusicRoom } from './scene/musicroom';
 import { initHideSeek } from './scene/hideseek';
+import { initCowCare } from './scene/cowcare';
 
 initView();
 preloadArt();
@@ -50,6 +51,7 @@ initMusic();
 initKitchen();
 initLearn();
 initMusicRoom();
+initCowCare();
 initScenes();
 initPhotos();
 initBedtime();
@@ -60,6 +62,7 @@ initInput($('stage'), p => burst(p.x, p.y), p => trail(p.x, p.y));
 initInput($('kitchen'), p => burst(p.x, p.y), p => trail(p.x, p.y));
 initInput($('learn'), p => burst(p.x, p.y), p => trail(p.x, p.y));
 initInput($('musicroom'), p => burst(p.x, p.y), p => trail(p.x, p.y));
+initInput($('cowcare'), p => { /* Cow Care has its own feedback layer */ }, p => { /* no empty-drag effects */ });
 loadManifest();
 
 // Splash: the first tap unlocks audio (required on iOS) and starts play.
