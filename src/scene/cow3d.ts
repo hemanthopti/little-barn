@@ -17,7 +17,7 @@ const white:Vec=[.99,.96,.89],dark:Vec=[.23,.18,.16],pink:Vec=[1,.6,.62],brown:V
 const parts:Part[]=[
 {n:'body',p:[.22,1.35,-.18],s:[1.3,.85,.78],c:white,spot:true},
 {n:'chest',p:[-.64,1.42,.2],s:[.68,.77,.66],c:white},
-...([[-.6,.48],[1.02,.48],[-.6,-.5],[1.02,-.5]] as Vec[]).flatMap(([x,z],i)=>[
+...([[-.6,.48],[1.02,.48],[-.6,-.5],[1.02,-.5]] as [number,number][]).flatMap(([x,z],i)=>[
  {n:'leg'+i,p:[x,.67,z],s:[.24,.63,.24],c:white},
  {n:'hoof'+i,p:[x,.2,z+.07],s:[.25,.2,.27],c:brown}
 ]),
