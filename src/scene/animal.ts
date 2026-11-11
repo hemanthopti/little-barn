@@ -6,7 +6,7 @@ import { state } from '../core/state';
 import { sfx } from '../audio/clips';
 import { speak } from '../audio/speech';
 import { VOICE, Kind, Pose } from '../art/animals';
-import { SIZE, url, ANIM, Clip } from '../art/sprites';
+import { SIZE, url, ANIM, Clip, sheetReady, loadSheet } from '../art/sprites';
 import { hearts, sparkleAt, ripple } from './fx';
 
 /** Ground area animals can be dragged around in (scene units). */
@@ -104,7 +104,9 @@ export class Animal implements Interactive {
     };
   }
 
-  hasClip(name: string) { return !!ANIM[this.kind]?.[name as 'walk']; }
+  /** Has this clip, and its sheet has finished loading (until then the still picture is used). */
+  hasClip(name: string) { const c = ANIM[this.kind]?.[name as 'walk']; if (!c) return false; loadSheet(c.src); return sheetReady(c.src); }
+  get clip() { return this.clipName; }
 
   /**
    * Play an animated clip in place of the still image. Loops until stopClip(), or plays once and calls done.
@@ -112,7 +114,7 @@ export class Animal implements Interactive {
    */
   playClip(name: 'walk' | 'happy' | 'idle' | 'eat' | 'sleep' | 'shake', loop: boolean, done?: () => void) {
     const c: Clip | undefined = ANIM[this.kind]?.[name];
-    if (!c || !this.clipSvg) { done?.(); return; }
+    if (!c || !this.clipSvg || !sheetReady(c.src)) { if (c) loadSheet(c.src); done?.(); return; }
     if (this.clipName === name && loop) return;
     this.stopClip();
     const k = this.h / c.stand, svg = this.clipSvg, im = svg.firstElementChild as SVGImageElement;

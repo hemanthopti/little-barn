@@ -75,9 +75,10 @@ function particle(kind: 'drop' | 'bubble' | 'milk' | 'spark', x: number, y: numb
 function settle() { cow.setWalk(0, 0); cow.rest(); busy = false; setFurniture(); }
 /** The bell and the mud only make sense while she's standing. */
 function setFurniture() {
-  const standing = cow.pose === 'idle' && !sleeping;
+  // Hidden during the video jump too: that cow is drawn a little differently, so the collar wouldn't line up
+  const standing = cow.pose === 'idle' && !sleeping && cow.clip !== 'happy';
   layer('ccBell').style.display = standing ? '' : 'none';
-  layer('ccMud').style.display = standing || cow.pose === 'happy' ? '' : 'none';
+  layer('ccMud').style.display = standing || (cow.pose === 'happy' && cow.clip !== 'happy') ? '' : 'none';
 }
 function sway(ms: number, amp = 4, done?: () => void) {
   let t = 0;
@@ -412,6 +413,8 @@ export function initCowCare() {
     }
   };
   TOOLS.forEach(makeTool);
+
+  tickers.add(() => { if (entered) setFurniture(); });
 
   // Needs come and go; the cow sometimes yawns or swishes while waiting
   setInterval(() => {

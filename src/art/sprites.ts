@@ -73,7 +73,18 @@ export function img(name: string, x: number, y: number, w: number, h: number, an
 }
 
 /** Preload every image so the first tap on anything is instant. */
+/** Animation sheets that have finished downloading. A clip only plays once its sheet is here,
+ *  otherwise the animal would vanish for a moment while the (large) sheet loads. */
+const readySheets = new Set<string>();
+const keep: HTMLImageElement[] = [];
+export const sheetReady = (src: string) => readySheets.has(src);
+export function loadSheet(src: string) {
+  if (readySheets.has(src) || keep.some(i => i.dataset.src === src)) return;
+  const i = new Image(); i.dataset.src = src; keep.push(i);
+  i.onload = () => { (i.decode ? i.decode() : Promise.resolve()).catch(() => { }).then(() => readySheets.add(src)); };
+  i.src = asset(src);
+}
 export function preloadArt() {
-  for (const n of Object.keys(SIZE)) { const i = new Image(); i.decoding = 'async'; i.src = url(n); }
-  for (const k in ANIM) for (const c of Object.values(ANIM[k])) { const i = new Image(); i.decoding = 'async'; i.src = c!.src; }
+  for (const n of Object.keys(SIZE)) { const i = new Image(); i.decoding = 'async'; i.src = url(n); keep.push(i); }
+  for (const k in ANIM) for (const c of Object.values(ANIM[k])) loadSheet(c!.src);
 }
