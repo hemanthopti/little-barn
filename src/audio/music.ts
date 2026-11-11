@@ -11,7 +11,7 @@ const BPM = 84, BEAT = 60 / BPM, BARS = 8;
 const VOL = .16;
 
 // [midi note (0 = rest), length in beats]
-const TUNE: [number, number][] = [
+export const TUNE: [number, number][] = [
   [64, 1], [67, 1], [72, 1], [67, 1],
   [69, 2], [72, 1], [69, 1],
   [65, 1], [69, 1], [72, 1], [69, 1],
@@ -81,7 +81,7 @@ function scheduleLoop(t0: number) {
   loopN++;
 }
 
-const wanted = () => state.music && state.sound && state.started && !state.asleep && !document.hidden;
+const wanted = () => state.scene !== 'music' && state.music && state.sound && state.started && !state.asleep && !document.hidden;
 
 function tick() {
   const a = AC(); if (!a) return;

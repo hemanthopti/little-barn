@@ -6,16 +6,17 @@ import { speak } from '../audio/speech';
 import { url } from '../art/sprites';
 import { kitchenEnter, kitchenLeave } from './kitchen';
 import { learnEnter, learnLeave } from './learn';
+import { musicEnter, musicLeave } from './musicroom';
 
 /**
  * Rooms. Round picture buttons in the corner lead to every other room; tapping one fades across.
  * Farm systems (wandering, find game, idle invites) check state.scene and rest while another room shows.
  */
-type Room = 'farm' | 'kitchen' | 'learn';
-const ROOMS: Room[] = ['farm', 'kitchen', 'learn'];
-const SVG: Record<Room, string> = { farm: 'stage', kitchen: 'kitchen', learn: 'learn' };
-const THUMB: Record<Room, string> = { farm: 'farm-thumb', kitchen: 'k/kitchen-bg', learn: 'learn-thumb' };
-const LABEL: Record<Room, string> = { farm: 'Go to the farm', kitchen: 'Go to the kitchen', learn: 'Go to the picture cards' };
+type Room = 'farm' | 'kitchen' | 'learn' | 'music';
+const ROOMS: Room[] = ['farm', 'kitchen', 'learn', 'music'];
+const SVG: Record<Room, string> = { farm: 'stage', kitchen: 'kitchen', learn: 'learn', music: 'musicroom' };
+const THUMB: Record<Room, string> = { farm: 'farm-thumb', kitchen: 'k/kitchen-bg', learn: 'learn-thumb', music: 'music-thumb' };
+const LABEL: Record<Room, string> = { farm: 'Go to the farm', kitchen: 'Go to the kitchen', learn: 'Go to the picture cards', music: 'Go to the music room' };
 let switching = false;
 
 /** One button for each room you are not in. */
@@ -40,10 +41,12 @@ export function goScene(s: Room, instant = false) {
   const swap = () => {
     if (state.scene === 'kitchen') kitchenLeave();
     if (state.scene === 'learn') learnLeave();
+    if (state.scene === 'music') musicLeave();
     state.scene = s;
     ROOMS.forEach(r => { $(SVG[r]).style.display = r === s ? '' : 'none'; });
     if (s === 'kitchen') kitchenEnter();
     if (s === 'learn') learnEnter();
+    if (s === 'music') musicEnter();
     drawButtons(); changed();
   };
   if (instant) { swap(); return; }

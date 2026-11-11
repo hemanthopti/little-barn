@@ -74,6 +74,8 @@ for (const [k, en, hi, kn] of MORE) {
   if (!WORDS[k]) WORDS[k] = { en: en[0].toUpperCase() + en.slice(1) + '!', hi, kn };
 }
 if (!WORDS.tree) WORDS.tree = { en: 'Tree!', hi: 'पेड़', kn: 'ಮರ' };
+WORDS.music = { en: "Let's make music!", hi: 'चलो गाना गाएं!', kn: 'ಹಾಡೋಣ!' };
+WORDS.dance = { en: "Let's dance!", hi: 'चलो नाचें!', kn: 'ಕುಣಿಯೋಣ!' };
 WORDS.learn = { en: "Let's learn!", hi: 'चलो सीखें!', kn: 'ಕಲಿಯೋಣ!' };
 WORDS.again = { en: 'Try again!', hi: 'फिर से!', kn: 'ಮತ್ತೊಮ್ಮೆ!' };
 
@@ -89,7 +91,7 @@ WORDS.found = { en: 'Yay! You found it!', hi: 'शाबाश! मिल गय
 export const RECORD_ORDER = [...new Set(['cow', 'pig', 'sheep', 'hen', 'duck', 'puppy', 'kitten', 'frog', 'parrot', 'yummy', 'peekaboo', 'hide',
   'apple', 'sun', 'moon', 'rain', 'flower', 'butterfly', 'water', 'balloon', 'rainbow', 'barn', 'morning', 'night', 'sleep',
   'kitchen', 'farm', 'banana', 'carrot', 'milk', 'cheese', 'watermelon', 'grapes', 'broccoli', 'tomato', 'orange',
-  'toast', 'cookie', 'soup', 'learn', 'tree', 'bread', 'kettle', 'toaster', 'clock', 'spoon', 'bowl', 'plate', 'table', 'pot', 'fridge', 'oven', 'bird', 'soupready', 'clean', 'cuckoo', 'hot',
+  'toast', 'cookie', 'soup', 'learn', 'music', 'dance', 'tree', 'bread', 'kettle', 'toaster', 'clock', 'spoon', 'bowl', 'plate', 'table', 'pot', 'fridge', 'oven', 'bird', 'soupready', 'clean', 'cuckoo', 'hot',
   'found', ...FIND_KEYS.map(k => 'where-' + k)])];
 
 export const LANGS: { id: Lang; label: string; name: string; tag: string }[] = [

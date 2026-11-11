@@ -5,7 +5,7 @@ import { sfx } from '../audio/clips';
 import { HEART } from '../art/props';
 
 /** Particle effects. All live in the #fx layer on top of everything and ignore touches. */
-const FXL = { farm: 'fx', kitchen: 'kfx', learn: 'lfx' };
+const FXL = { farm: 'fx', kitchen: 'kfx', learn: 'lfx', music: 'mfx' };
 const layer = () => $(FXL[state.scene]) as SVGGElement;
 
 function fx(html: string, x: number, y: number) {

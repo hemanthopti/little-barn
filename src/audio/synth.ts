@@ -134,6 +134,38 @@ export const SYNTH: Record<string, () => number> = {
 };
 
 /** A xylophone note for the musical fence. */
+/** Music room instruments */
+export function drum(delay = 0, big = true) {
+  tone({ f0: big ? 150 : 220, f1: big ? 48 : 90, dur: big ? .45 : .25, vol: big ? .55 : .35, att: .002, delay });
+  noise({ dur: .08, filter: ['lowpass', 1400], vol: .12, att: .001, delay });
+}
+export function shaker(delay = 0) {
+  noise({ dur: .09, filter: ['highpass', 5200], vol: .1, att: .01, delay });
+  noise({ dur: .07, filter: ['highpass', 6000], vol: .07, att: .01, delay: delay + .11 });
+}
+export function jingle(delay = 0) {
+  for (let i = 0; i < 5; i++) tone({ f0: 2400 + Math.random() * 2200, dur: .35, vol: .035, att: .002, delay: delay + i * .025 });
+  noise({ dur: .25, filter: ['highpass', 7500], vol: .08, att: .003, delay });
+}
+/** A sung note: a soft buzzing voice shaped into a vowel, with a little vibrato. */
+export function sing(f: number, vowel: 'ah' | 'oo' | 'ee' = 'ah', dur = .75, vol = .5) {
+  const a = AC(); if (!a || !state.sound || !master) return;
+  const t = a.currentTime, F = { ah: [750, 1150], oo: [380, 870], ee: [320, 2300] }[vowel];
+  const osc = a.createOscillator(); osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(f * .96, t); osc.frequency.linearRampToValueAtTime(f, t + .07);
+  const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = 5.5; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(f * .015, t + .3);
+  lfo.connect(lg); lg.connect(osc.frequency);
+  const g = a.createGain();
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .06); g.gain.setValueAtTime(vol, t + dur - .15); g.gain.linearRampToValueAtTime(0, t + dur);
+  for (const [fr, q, v] of [[F[0], 6, 1], [F[1], 9, .5]]) {
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q;
+    const bg = a.createGain(); bg.gain.value = v;
+    osc.connect(bp); bp.connect(bg); bg.connect(g);
+  }
+  g.connect(master);
+  osc.start(t); lfo.start(t); osc.stop(t + dur + .05); lfo.stop(t + dur + .05);
+}
+
 export function xylo(freq: number) {
   tone({ type: 'sine', f0: freq, dur: .9, vol: .22, att: .004 });
   tone({ type: 'sine', f0: freq * 4, dur: .15, vol: .035, att: .002 });

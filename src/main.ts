@@ -30,6 +30,7 @@ import { loadFamily, decodeFamily } from './audio/family';
 import { initKitchen } from './scene/kitchen';
 import { initScenes } from './scene/scenes';
 import { initLearn } from './scene/learn';
+import { initMusicRoom } from './scene/musicroom';
 import { initHideSeek } from './scene/hideseek';
 
 initView();
@@ -48,6 +49,7 @@ initVisitors();
 initMusic();
 initKitchen();
 initLearn();
+initMusicRoom();
 initScenes();
 initPhotos();
 initBedtime();
@@ -57,6 +59,7 @@ loadFamily();
 initInput($('stage'), p => burst(p.x, p.y), p => trail(p.x, p.y));
 initInput($('kitchen'), p => burst(p.x, p.y), p => trail(p.x, p.y));
 initInput($('learn'), p => burst(p.x, p.y), p => trail(p.x, p.y));
+initInput($('musicroom'), p => burst(p.x, p.y), p => trail(p.x, p.y));
 loadManifest();
 
 // Splash: the first tap unlocks audio (required on iOS) and starts play.
