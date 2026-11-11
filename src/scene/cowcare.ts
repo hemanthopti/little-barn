@@ -122,6 +122,12 @@ function runAction(t: Tool, target?: Pt) {
   cow3d?.act(t);
   ++actionToken; const token = actionToken;
   select(t);
+  // GPU renderer handles all reactions when available; do not double-render legacy 2D effects.
+  if (cow3d) {
+    sfx(t === 'wash' ? 'splash' : t === 'apple' ? 'chomp' : t === 'brush' ? 'rustle' : t === 'sleep' ? 'chimeDown' : 'moo');
+    speakCow(t);
+    return;
+  }
   node('ccWater').setAttribute('opacity', '0');
   node('ccSponge').setAttribute('opacity', '0');
   node('ccMilkStream').setAttribute('opacity', '0');
@@ -276,6 +282,9 @@ export function initCowCare() {
     cow3d = new Cow3D(canvas);
     cow3d.onLost = () => { $('ccCow').setAttribute('opacity','1'); cow3d = null; };
     $('ccCowImg').setAttribute('opacity','0');
+    // Hide the duplicate 2D milk bucket and foam; these now exist in the 3D viewport.
+    $('ccBucket').setAttribute('opacity','0');
+    $('ccFoam').setAttribute('opacity','0');
   } catch (e) {
     console.warn('Cow Care 3D unavailable; continuing with painted cow', e);
     obj.remove();
@@ -303,7 +312,7 @@ export function initCowCare() {
 export function cowCareEnter() {
   entered = true;
   cow3d?.start(); ++actionToken; selected = 'pet'; cleaning = 0; milkLevel = 0;
-  node('ccFoam').setAttribute('opacity', '.1');
+  node('ccFoam').setAttribute('opacity', cow3d ? '0' : '.1');
   node('ccMilkFill').setAttribute('opacity', '0');
   node('ccMilkStream').setAttribute('opacity', '0');
   node('ccFlyingApple').setAttribute('opacity', '0');
