@@ -297,7 +297,7 @@ export function initCowCare() {
     const padX=(width-1600*s)*.5, padY=(height-900*s)*.5;
     Object.assign(stage3d.style,{
       left: (padX+340*s)+'px',
-      top: (padY+40*s)+'px',
+      top: (padY+175*s)+'px',
       width: (980*s)+'px',
       height: (705*s)+'px'
     });
