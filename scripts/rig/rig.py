@@ -54,11 +54,23 @@ class Rig:
                 xs = np.where(comp.any(0))[0]
                 m |= comp
                 m[b['pivot'][1] + PAD:cut + PAD + 4, xs.min():xs.max() + 1] = True
+            if 'legbox' in b:
+                # A leg given as a box (for paws that touch their neighbour). Painted pixels go to whichever
+                # leg's centre line is nearest, so neighbouring legs split cleanly with no shared seam.
+                x0, y0, x1, y1 = b['legbox']
+                alpha = self.pre[..., 3] > 1
+                centres = [((o['legbox'][0] + o['legbox'][2]) / 2 + PAD) for o in bones if 'legbox' in o]
+                mine = (x0 + x1) / 2 + PAD
+                dist = np.abs(self.xx - mine)
+                nearest = np.all([dist <= np.abs(self.xx - c) for c in centres], axis=0)
+                rows = np.zeros_like(alpha); rows[y0 + PAD:y1 + PAD + 6, :] = True
+                m |= ndimage.binary_dilation(alpha & rows & nearest, iterations=3) & nearest   # keep the soft edge too
             if 'tail' in b:
                 # A tail: the painted shape right of `cut` that contains the seed point
                 sx, sy, cut = b['tail']
                 alpha = self.pre[..., 3] > 100
                 right = alpha.copy(); right[:, :cut + PAD] = False
+                if 'tail_ymax' in b: right[b['tail_ymax'] + PAD:] = False
                 lab, _ = ndimage.label(right)
                 m |= ndimage.binary_dilation(lab == lab[sy + PAD, sx + PAD], iterations=3)
             w = soft(m, b.get('blur', 10))
@@ -91,10 +103,14 @@ class Rig:
                 off = np.array([py, px]) - M @ np.array([py + ty, px + tx])
                 layer = np.stack([ndimage.affine_transform(layer[..., c], M, offset=off, order=1) for c in range(4)], -1)
             acc += layer
-        bx, by, scx, scy = pose.get('body', (0, 0, 1, 1))
-        if (bx, by, scx, scy) != (0, 0, 1, 1):
+        body = tuple(pose.get('body', (0, 0, 1, 1))) + (0,)
+        bx, by, scx, scy, br = body[:5]
+        if (bx, by, scx, scy, br) != (0, 0, 1, 1, 0):
             fx, fy = self.w / 2, self.h - PAD
-            M = np.array([[1 / scy, 0], [0, 1 / scx]])
+            Ri = rot(-br)                                       # waddle: lean around the feet
+            S = np.array([[1 / scy, 0], [0, 1 / scx]])
+            Rrc = np.array([[Ri[1, 1], Ri[1, 0]], [Ri[0, 1], Ri[0, 0]]])
+            M = S @ Rrc
             off = np.array([fy, fx]) - M @ np.array([fy + by, fx + bx])
             acc = np.stack([ndimage.affine_transform(acc[..., c], M, offset=off, order=1) for c in range(4)], -1)
         # Where two shares overlap after moving, keep the colour and cap the coverage (no over-bright patches)
@@ -181,6 +197,85 @@ def cow():
     return clips
 
 
+# ---------- the other animals: same three clips from a description of their parts ----------
+FOUR = dict(
+    pig=dict(feet=519, bones=[
+        dict(name='leg0', leg=(150, 480, 443), pivot=(152, 395), fade=(0, 1), fadelen=40, blur=2),
+        dict(name='leg1', leg=(243, 490, 443), pivot=(243, 400), fade=(0, 1), fadelen=40, blur=2),
+        dict(name='leg2', leg=(330, 470, 443), pivot=(331, 410), fade=(0, 1), fadelen=30, blur=2),
+        dict(name='leg3', leg=(423, 480, 443), pivot=(423, 395), fade=(0, 1), fadelen=40, blur=2),
+        dict(name='head', boxes=[(0, 0, 330, 300)], pivot=(190, 320), fade=(0, -1), fadelen=40, blur=8),
+        dict(name='tail', tail=(505, 230, 468), pivot=(470, 255), fade=(1, 0), fadelen=12, blur=2)]),
+    puppy=dict(feet=519, bones=[
+        dict(name='leg0', legbox=(58, 372, 165, 512), pivot=(112, 375), fade=(0, 1), fadelen=40, blur=2),
+        dict(name='leg1', legbox=(165, 392, 262, 520), pivot=(212, 392), fade=(0, 1), fadelen=40, blur=2),
+        dict(name='leg2', legbox=(262, 425, 332, 498), pivot=(296, 425), fade=(0, 1), fadelen=25, blur=2),
+        dict(name='leg3', legbox=(332, 372, 430, 508), pivot=(380, 372), fade=(0, 1), fadelen=40, blur=2),
+        dict(name='head', boxes=[(0, 0, 402, 292)], pivot=(210, 312), fade=(0, -1), fadelen=40, blur=8),
+        dict(name='tail', tail=(440, 260, 405), tail_ymax=335, pivot=(405, 325), fade=(1, 0), fadelen=12, blur=2)]),
+    kitten=dict(feet=518, bones=[
+        dict(name='leg0', legbox=(55, 362, 152, 515), pivot=(104, 365), fade=(0, 1), fadelen=40, blur=2),
+        dict(name='leg1', legbox=(152, 382, 252, 518), pivot=(200, 382), fade=(0, 1), fadelen=40, blur=2),
+        dict(name='leg2', legbox=(252, 420, 303, 502), pivot=(278, 420), fade=(0, 1), fadelen=25, blur=2),
+        dict(name='leg3', legbox=(303, 378, 392, 508), pivot=(348, 378), fade=(0, 1), fadelen=40, blur=2),
+        dict(name='head', boxes=[(0, 0, 372, 296)], pivot=(200, 318), fade=(0, -1), fadelen=40, blur=8),
+        dict(name='tail', tail=(430, 230, 352), tail_ymax=345, pivot=(360, 335), fade=(1, 0), fadelen=14, blur=2)]),
+)
+TWO = dict(
+    duck=dict(feet=519, bones=[
+        dict(name='leg0', leg=(92, 490, 455), pivot=(105, 440), fade=(0, 1), fadelen=20, blur=2),
+        dict(name='leg1', leg=(222, 495, 455), pivot=(215, 440), fade=(0, 1), fadelen=20, blur=2),
+        dict(name='head', boxes=[(0, 0, 300, 240)], pivot=(165, 265), fade=(0, -1), fadelen=40, blur=8)]),
+)
+
+
+def animal(kind):
+    cfg = {**FOUR, **TWO}[kind]
+    rig = Rig(Image.open(f'public/art/{kind}-idle.webp'), cfg['bones'])
+    two = kind in TWO
+    feet = cfg['feet']
+    clips = {}
+    lift = lambda v: -max(0, v) * 6
+
+    fr = []
+    for i in range(16):
+        p = i / 16 * 2 * math.pi
+        s_, c = math.sin(p), math.cos(p)
+        pose = {'head': (2.2 * math.sin(2 * p), 0, -2 * abs(c)), 'tail': (12 * math.sin(p + 1), 0, 0)}
+        if two:      # waddle: legs alternate, body leans side to side
+            pose.update({'leg0': (16 * s_, 0, lift(c)), 'leg1': (-16 * s_, 0, lift(-c)), 'body': (0, -3 * abs(s_), 1, 1, 4 * s_)})
+        else:        # diagonal pairs: 0 with 2, 1 with 3
+            pose.update({'leg0': (12 * s_, 0, lift(c)), 'leg2': (10 * s_, 0, lift(c)),
+                         'leg1': (-12 * s_, 0, lift(-c)), 'leg3': (-10 * s_, 0, lift(-c)),
+                         'body': (0, -4 * abs(s_), 1, 1)})
+        fr.append(rig.frame(pose))
+    clips['walk'] = sheet(fr, f'{kind}-walk', feet, feet)
+
+    fr = []
+    n = 22
+    for i in range(n):
+        t = i / (n - 1)
+        if t < .18: k = t / .18; hop, sx, sy, leg = 0, 1 + .06 * k, 1 - .08 * k, 0
+        elif t < .62: k = (t - .18) / .44; hop = -70 * math.sin(math.pi * k); sx, sy = .97, 1.05; leg = 16 * math.sin(math.pi * k)
+        elif t < .76: k = (t - .62) / .14; hop, sx, sy, leg = 0, 1 + .07 * math.sin(math.pi * k), 1 - .09 * math.sin(math.pi * k), 0
+        else: hop, sx, sy, leg = 0, 1, 1, 0
+        pose = {'head': (4 * math.sin(t * math.pi * 3), 0, 0), 'tail': (18 * math.sin(t * math.pi * 6), 0, 0),
+                'leg0': (leg, 0, 0), 'leg1': (-leg, 0, 0), 'leg2': (-leg * .7, 0, 0), 'leg3': (leg * .7, 0, 0),
+                'body': (0, hop, sx, sy)}
+        fr.append(rig.frame(pose))
+    clips['happy'] = sheet(fr, f'{kind}-happy', feet, feet)
+
+    fr = []
+    for i in range(36):
+        p = i / 36 * 2 * math.pi
+        fr.append(rig.frame({'head': (2 * math.sin(p), 0, 1.2 * math.sin(2 * p)), 'tail': (12 * math.sin(p * 2), 0, 0),
+                             'body': (0, 0, 1 - .012 * math.sin(2 * p), 1 + .018 * math.sin(2 * p))}))
+    clips['idle'] = sheet(fr, f'{kind}-idle', feet, feet)
+    return clips
+
+
 if __name__ == '__main__':
-    which = sys.argv[1] if len(sys.argv) > 1 else 'cow'
-    print(json.dumps({which: {'cow': cow}[which]()}, indent=1))
+    out = {}
+    for which in (sys.argv[1:] or ['cow']):
+        out[which] = cow() if which == 'cow' else animal(which)
+    print(json.dumps(out, indent=1))

@@ -30,8 +30,29 @@ export const url = (name: string) => `art/${name}.webp`;
 export interface Clip { src: string; cols: number; n: number; cw: number; ch: number; fps: number; ax: number; ay: number; stand: number }
 export const ANIM: Record<string, Partial<Record<'walk' | 'happy' | 'idle' | 'eat' | 'sleep', Clip>>> = {
   cow: {
-    walk: { src: 'anim/cow-walk.webp', cols: 8, n: 16, cw: 377, ch: 326, fps: 15, ax: 183.3, ay: 322.5, stand: 300 },
-    happy: { src: 'anim/cow-happy.webp', cols: 8, n: 22, cw: 380, ch: 432, fps: 15, ax: 188.6, ay: 428.9, stand: 300 }
+    walk: { src: 'anim/cow-walk.webp', cols: 8, n: 16, cw: 417, ch: 396, fps: 15, ax: 208.5, ay: 346.6, stand: 300 },
+    happy: { src: 'anim/cow-happy.webp', cols: 8, n: 22, cw: 380, ch: 432, fps: 15, ax: 188.6, ay: 428.9, stand: 300 },
+    idle: { src: 'anim/cow-idle.webp', cols: 8, n: 36, cw: 417, ch: 396, fps: 15, ax: 208.5, ay: 346.6, stand: 300 }
+  },
+  pig: {
+    walk: { src: 'anim/pig-walk.webp', cols: 8, n: 16, cw: 402, ch: 393, fps: 15, ax: 201.0, ay: 346.2, stand: 300 },
+    happy: { src: 'anim/pig-happy.webp', cols: 8, n: 22, cw: 402, ch: 393, fps: 15, ax: 201.0, ay: 346.2, stand: 300 },
+    idle: { src: 'anim/pig-idle.webp', cols: 8, n: 36, cw: 402, ch: 393, fps: 15, ax: 201.0, ay: 346.2, stand: 300 }
+  },
+  puppy: {
+    walk: { src: 'anim/puppy-walk.webp', cols: 8, n: 16, cw: 365, ch: 393, fps: 15, ax: 182.5, ay: 346.2, stand: 300 },
+    happy: { src: 'anim/puppy-happy.webp', cols: 8, n: 22, cw: 365, ch: 393, fps: 15, ax: 182.5, ay: 346.2, stand: 300 },
+    idle: { src: 'anim/puppy-idle.webp', cols: 8, n: 36, cw: 365, ch: 393, fps: 15, ax: 182.5, ay: 346.2, stand: 300 }
+  },
+  kitten: {
+    walk: { src: 'anim/kitten-walk.webp', cols: 8, n: 16, cw: 361, ch: 394, fps: 15, ax: 180.5, ay: 346.3, stand: 300 },
+    happy: { src: 'anim/kitten-happy.webp', cols: 8, n: 22, cw: 361, ch: 394, fps: 15, ax: 180.5, ay: 346.3, stand: 300 },
+    idle: { src: 'anim/kitten-idle.webp', cols: 8, n: 36, cw: 361, ch: 394, fps: 15, ax: 180.5, ay: 346.3, stand: 300 }
+  },
+  duck: {
+    walk: { src: 'anim/duck-walk.webp', cols: 8, n: 16, cw: 309, ch: 393, fps: 15, ax: 154.5, ay: 346.2, stand: 300 },
+    happy: { src: 'anim/duck-happy.webp', cols: 8, n: 22, cw: 309, ch: 393, fps: 15, ax: 154.5, ay: 346.2, stand: 300 },
+    idle: { src: 'anim/duck-idle.webp', cols: 8, n: 36, cw: 309, ch: 393, fps: 15, ax: 154.5, ay: 346.2, stand: 300 }
   }
 };
 

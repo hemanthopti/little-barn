@@ -21,7 +21,7 @@ interface Brain {
   phase: number; speed: number; swims: boolean; apple?: GroundApple; flowerTap?: () => void;
 }
 
-const YARD = { x0: 90, x1: 1510, y0: 705, y1: 870 };
+const YARD = { x0: 90, x1: 1400, y0: 705, y1: 870 };  // right edge kept clear of the room buttons
 const SPEED: Record<string, number> = { cow: 52, pig: 55, puppy: 75, kitten: 70, duck: 32 };
 const brains: Brain[] = [];
 let now = 0;
@@ -59,7 +59,7 @@ function goTo(b: Brain, x: number, y: number, goal: Goal) {
   b.a.setFacing(x < b.a.x ? -1 : 1);
   if (b.a.hasClip('walk')) b.a.playClip('walk', true);
 }
-function stopWalking(a: Animal) { a.setWalk(0, 0); if (a.hasClip('walk') && !a.anim) a.stopClip(); }
+function stopWalking(a: Animal) { a.setWalk(0, 0); if (a.hasClip('walk') && !a.anim) { a.stopClip(); a.idleClip(); } }
 function rest(b: Brain, ms: number) { b.mode = 'idle'; b.until = now + ms; stopWalking(b.a); }
 
 /** Decide what to do next. */

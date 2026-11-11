@@ -17,7 +17,7 @@ export function initYard() {
     new Animal('pig', 'pig', 470, 872, 165, layer, true),
     new Animal('duck', 'duck', 785, 805, 115, layer, true),
     new Animal('puppy', 'puppy', 1150, 885, 165, layer, true),
-    new Animal('kitten', 'kitten', 1470, 845, 155, layer, true)
+    new Animal('kitten', 'kitten', 1380, 845, 155, layer, true)
   ];
   registerFeeders(() => yard);
 

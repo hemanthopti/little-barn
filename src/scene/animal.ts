@@ -59,6 +59,7 @@ export class Animal implements Interactive {
     this.place();
     objs[id] = this;
     Animal.all.add(this);
+    setTimeout(() => this.idleClip(), 50);
     // Petting: hold a finger on the animal. It closes its eyes happily, hearts float up, the kitten purrs.
     this.hold = {
       start: () => {
@@ -123,7 +124,8 @@ export class Animal implements Interactive {
     show(0);
     svg.style.display = ''; this.image.style.display = 'none';
     this.clipName = name;
-    let t = 0;
+    // Standing animals start their breathing loop at different points, so they don't move in step
+    let t = name === 'idle' ? Math.random() * c.n / c.fps * 1000 : 0;
     const tick = (dt: number) => {
       t += dt;
       let f = Math.floor(t * c.fps / 1000);
@@ -140,6 +142,7 @@ export class Animal implements Interactive {
   }
 
   setPose(p: Pose) {
+    if (p !== 'idle' && this.clipName === 'idle') this.stopClip();
     this.pose = p;
     const [pw, ph] = SIZE[`${this.kind}-${p}`];
     const w = pw * this.unit, h = ph * this.unit;
@@ -147,7 +150,12 @@ export class Animal implements Interactive {
     this.image.setAttribute('x', (-w / 2).toFixed(1)); this.image.setAttribute('y', (-h).toFixed(1));
     this.image.setAttribute('width', w.toFixed(1)); this.image.setAttribute('height', h.toFixed(1));
   }
-  private rest() { this.setPose(state.asleep ? 'sleep' : 'idle'); }
+  private rest() { this.setPose(state.asleep ? 'sleep' : 'idle'); this.idleClip(); }
+  /** Standing still: breathe, look about and swish the tail (if this animal has an idle clip). */
+  idleClip() {
+    if (state.asleep || this.pose !== 'idle' || this.clipName || this.dragging || this.petting || !this.hasClip('idle')) return;
+    this.playClip('idle', true);
+  }
 
   place() {
     this.g.setAttribute('transform', `translate(${this.x.toFixed(1)},${this.y.toFixed(1)})`);
@@ -205,7 +213,7 @@ export class Animal implements Interactive {
 }
 
 /** Put every animal to sleep or wake them all (bedtime). */
-export function allPose(p: Pose) { Animal.all.forEach(a => { if (!a.anim) a.setPose(p); }); }
+export function allPose(p: Pose) { Animal.all.forEach(a => { if (!a.anim) { a.setPose(p); a.idleClip(); } }); }
 
 /** Anything that can be fed an apple. Scene modules register a getter for their animals. */
 const feederSources: (() => (Animal | null | undefined)[])[] = [];
