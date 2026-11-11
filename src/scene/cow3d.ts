@@ -97,6 +97,21 @@ export class Cow3D{
  p[1]+=bob;if(a==='sleep'){p[1]-=.16;s[1]*=.94}
  this.draw(p as Vec,s as Vec,part.c as Vec,ang,!!part.spot);
  }
+ // The sponge and showerhead are actual volumetric objects, animated in 3D.
+ if(a==='brush'){
+   const x=-.08+Math.sin(t*9)*.65,y=1.96+Math.cos(t*9)*.19;
+   this.draw([x,y,1.43],[.34,.18,.25],[1,.72,.26],Math.sin(t*9)*.25);
+   this.draw([x,y+.18,1.4],[.21,.19,.19],[.79,.55,.29],Math.sin(t*9)*.25);
+ }
+ if(a==='wash'){
+   const x=.85+Math.sin(t*4)*.3;
+   this.draw([x,3.37,1.4],[.36,.14,.31],[.63,.79,.87],-.35);
+   this.draw([x+.17,3.65,1.34],[.13,.3,.13],[.69,.83,.88],-.35);
+ }
+ if(a==='pet'){
+   const x=-1.03+.18*Math.sin(t*8);
+   this.draw([x,2.76,1.53],[.23,.16,.18],[1,.82,.65],Math.sin(t*8)*.3);
+ }
  // Milk bucket and glossy milk filling.
  this.draw([1.77,.48,1.05],[.39,.43,.37],[.63,.77,.85]);this.draw([1.77,.86,1.05],[.4,.055,.38],[.91,.96,1]);if(this.milk)this.draw([1.77,.89,1.05],[.31,.04,.3],[1,1,.94]);
  if(a==='apple'){const f=1-Math.max(0,(this.actionEnd-now))/1600;this.draw([-1.9+1.2*f,1.05+.9*f,1.35],[.19*(1-.65*f),.2*(1-.65*f),.2*(1-.65*f)],[.91,.06,.13]);}
