@@ -7,16 +7,17 @@ import { url } from '../art/sprites';
 import { kitchenEnter, kitchenLeave } from './kitchen';
 import { learnEnter, learnLeave } from './learn';
 import { musicEnter, musicLeave } from './musicroom';
+import { cowCareEnter, cowCareLeave } from './cowcare';
 
 /**
  * Rooms. Round picture buttons in the corner lead to every other room; tapping one fades across.
  * Farm systems (wandering, find game, idle invites) check state.scene and rest while another room shows.
  */
-type Room = 'farm' | 'kitchen' | 'learn' | 'music';
-const ROOMS: Room[] = ['farm', 'kitchen', 'learn', 'music'];
-const SVG: Record<Room, string> = { farm: 'stage', kitchen: 'kitchen', learn: 'learn', music: 'musicroom' };
-const THUMB: Record<Room, string> = { farm: 'farm-thumb', kitchen: 'k/kitchen-bg', learn: 'learn-thumb', music: 'music-thumb' };
-const LABEL: Record<Room, string> = { farm: 'Go to the farm', kitchen: 'Go to the kitchen', learn: 'Go to the picture cards', music: 'Go to the music room' };
+type Room = 'farm' | 'kitchen' | 'learn' | 'music' | 'cowcare';
+const ROOMS: Room[] = ['farm', 'kitchen', 'learn', 'music', 'cowcare'];
+const SVG: Record<Room, string> = { farm: 'stage', kitchen: 'kitchen', learn: 'learn', music: 'musicroom', cowcare: 'cowcare' };
+const THUMB: Record<Room, string> = { farm: 'farm-thumb', kitchen: 'k/kitchen-bg', learn: 'learn-thumb', music: 'music-thumb', cowcare: 'cow-idle' };
+const LABEL: Record<Room, string> = { farm: 'Go to the farm', kitchen: 'Go to the kitchen', learn: 'Go to the picture cards', music: 'Go to the music room', cowcare: 'Play with and care for the cow' };
 let switching = false;
 
 /** One button for each room you are not in. */
@@ -42,11 +43,13 @@ export function goScene(s: Room, instant = false) {
     if (state.scene === 'kitchen') kitchenLeave();
     if (state.scene === 'learn') learnLeave();
     if (state.scene === 'music') musicLeave();
+    if (state.scene === 'cowcare') cowCareLeave();
     state.scene = s;
     ROOMS.forEach(r => { $(SVG[r]).style.display = r === s ? '' : 'none'; });
     if (s === 'kitchen') kitchenEnter();
     if (s === 'learn') learnEnter();
     if (s === 'music') musicEnter();
+    if (s === 'cowcare') cowCareEnter();
     drawButtons(); changed();
   };
   if (instant) { swap(); return; }
