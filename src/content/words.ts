@@ -74,6 +74,18 @@ for (const [k, en, hi, kn] of MORE) {
   if (!WORDS[k]) WORDS[k] = { en: en[0].toUpperCase() + en.slice(1) + '!', hi, kn };
 }
 if (!WORDS.tree) WORDS.tree = { en: 'Tree!', hi: 'पेड़', kn: 'ಮರ' };
+// Cow Care
+WORDS['cc-tickle'] = { en: 'Hee hee, that tickles!', hi: 'ही ही, गुदगुदी हो रही है!', kn: 'ಹಿ ಹಿ, ಕಚಗುಳಿ ಆಗುತ್ತಿದೆ!' };
+WORDS['cc-hungry'] = { en: "I'm hungry!", hi: 'मुझे भूख लगी है!', kn: 'ನನಗೆ ಹಸಿವಾಗಿದೆ!' };
+WORDS['cc-dirty'] = { en: "Oh no, I'm all muddy!", hi: 'अरे, मैं गंदी हो गई!', kn: 'ಅಯ್ಯೋ, ನಾನು ಕೊಳಕಾದೆ!' };
+WORDS['cc-sleepy'] = { en: "I'm sleepy...", hi: 'मुझे नींद आ रही है...', kn: 'ನನಗೆ ನಿದ್ದೆ ಬರುತ್ತಿದೆ...' };
+WORDS['cc-cuddle'] = { en: 'Give me a hug!', hi: 'मुझे गले लगाओ!', kn: 'ನನ್ನನ್ನು ಅಪ್ಪಿಕೋ!' };
+WORDS['cc-milk'] = { en: 'Time for milking!', hi: 'दूध निकालो!', kn: 'ಹಾಲು ಕರೆಯೋಣ!' };
+WORDS['cc-thanks'] = { en: 'Thank you!', hi: 'धन्यवाद!', kn: 'ಧನ್ಯವಾದ!' };
+WORDS['cc-wake'] = { en: 'Good morning!', hi: 'सुप्रभात!', kn: 'ಶುಭೋದಯ!' };
+WORDS['cc-night'] = { en: 'Good night!', hi: 'शुभ रात्रि!', kn: 'ಶುಭ ರಾತ್ರಿ!' };
+WORDS['cc-splash'] = { en: 'Splash splash!', hi: 'छप छप!', kn: 'ಚಪ್ ಚಪ್!' };
+WORDS['cc-brush'] = { en: 'Brush brush!', hi: 'ब्रश ब्रश!', kn: 'ಬ್ರಷ್ ಬ್ರಷ್!' };
 WORDS.music = { en: "Let's make music!", hi: 'चलो गाना गाएं!', kn: 'ಹಾಡೋಣ!' };
 WORDS.dance = { en: "Let's dance!", hi: 'चलो नाचें!', kn: 'ಕುಣಿಯೋಣ!' };
 WORDS.learn = { en: "Let's learn!", hi: 'चलो सीखें!', kn: 'ಕಲಿಯೋಣ!' };
@@ -91,7 +103,7 @@ WORDS.found = { en: 'Yay! You found it!', hi: 'शाबाश! मिल गय
 export const RECORD_ORDER = [...new Set(['cow', 'pig', 'sheep', 'hen', 'duck', 'puppy', 'kitten', 'frog', 'parrot', 'yummy', 'peekaboo', 'hide',
   'apple', 'sun', 'moon', 'rain', 'flower', 'butterfly', 'water', 'balloon', 'rainbow', 'barn', 'morning', 'night', 'sleep',
   'kitchen', 'farm', 'banana', 'carrot', 'milk', 'cheese', 'watermelon', 'grapes', 'broccoli', 'tomato', 'orange',
-  'toast', 'cookie', 'soup', 'learn', 'music', 'dance', 'tree', 'bread', 'kettle', 'toaster', 'clock', 'spoon', 'bowl', 'plate', 'table', 'pot', 'fridge', 'oven', 'bird', 'soupready', 'clean', 'cuckoo', 'hot',
+  'toast', 'cookie', 'soup', 'learn', 'music', 'dance', 'cc-tickle', 'cc-hungry', 'cc-dirty', 'cc-sleepy', 'cc-cuddle', 'cc-milk', 'cc-thanks', 'cc-wake', 'cc-night', 'cc-splash', 'cc-brush', 'tree', 'bread', 'kettle', 'toaster', 'clock', 'spoon', 'bowl', 'plate', 'table', 'pot', 'fridge', 'oven', 'bird', 'soupready', 'clean', 'cuckoo', 'hot',
   'found', ...FIND_KEYS.map(k => 'where-' + k)])];
 
 export const LANGS: { id: Lang; label: string; name: string; tag: string }[] = [

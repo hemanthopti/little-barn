@@ -110,7 +110,7 @@ export class Animal implements Interactive {
    * Play an animated clip in place of the still image. Loops until stopClip(), or plays once and calls done.
    * Each frame is shown by moving the nested <svg>'s viewBox over the sprite sheet.
    */
-  playClip(name: 'walk' | 'happy' | 'idle' | 'eat' | 'sleep', loop: boolean, done?: () => void) {
+  playClip(name: 'walk' | 'happy' | 'idle' | 'eat' | 'sleep' | 'shake', loop: boolean, done?: () => void) {
     const c: Clip | undefined = ANIM[this.kind]?.[name];
     if (!c || !this.clipSvg) { done?.(); return; }
     if (this.clipName === name && loop) return;
@@ -151,7 +151,7 @@ export class Animal implements Interactive {
     this.image.setAttribute('x', (-w / 2).toFixed(1)); this.image.setAttribute('y', (-h).toFixed(1));
     this.image.setAttribute('width', w.toFixed(1)); this.image.setAttribute('height', h.toFixed(1));
   }
-  private rest() { this.setPose(state.asleep ? 'sleep' : 'idle'); this.idleClip(); }
+  rest() { this.setPose(state.asleep ? 'sleep' : 'idle'); this.idleClip(); }
   /** Standing still: breathe, look about and swish the tail (if this animal has an idle clip). */
   idleClip() {
     if (state.asleep || this.pose !== 'idle' || this.clipName || this.dragging || this.petting || !this.hasClip('idle')) return;

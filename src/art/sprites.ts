@@ -29,11 +29,13 @@ export const url = (name: string) => asset(`art/${name}.webp`);
  * cw/ch = frame size in px; ax/ay = point between the feet inside a frame; stand = standing height in px.
  */
 export interface Clip { src: string; cols: number; n: number; cw: number; ch: number; fps: number; ax: number; ay: number; stand: number }
-export const ANIM: Record<string, Partial<Record<'walk' | 'happy' | 'idle' | 'eat' | 'sleep', Clip>>> = {
+export const ANIM: Record<string, Partial<Record<'walk' | 'happy' | 'idle' | 'eat' | 'sleep' | 'shake', Clip>>> = {
   cow: {
     walk: { src: 'anim/cow-walk.webp', cols: 8, n: 16, cw: 417, ch: 396, fps: 15, ax: 208.5, ay: 346.6, stand: 300 },
     happy: { src: 'anim/cow-happy.webp', cols: 8, n: 22, cw: 380, ch: 432, fps: 15, ax: 188.6, ay: 428.9, stand: 300 },
-    idle: { src: 'anim/cow-idle.webp', cols: 8, n: 36, cw: 417, ch: 396, fps: 15, ax: 208.5, ay: 346.6, stand: 300 }
+    idle: { src: 'anim/cow-idle.webp', cols: 8, n: 36, cw: 417, ch: 396, fps: 15, ax: 208.5, ay: 346.6, stand: 300 },
+    eat: { src: 'anim/cow-eat.webp', cols: 8, n: 24, cw: 417, ch: 396, fps: 15, ax: 208.5, ay: 346.6, stand: 300 },
+    shake: { src: 'anim/cow-shake.webp', cols: 8, n: 20, cw: 417, ch: 396, fps: 15, ax: 208.5, ay: 346.6, stand: 300 }
   },
   pig: {
     walk: { src: 'anim/pig-walk.webp', cols: 8, n: 16, cw: 402, ch: 393, fps: 15, ax: 201.0, ay: 346.2, stand: 300 },

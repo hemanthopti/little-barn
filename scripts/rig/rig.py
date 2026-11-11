@@ -133,17 +133,19 @@ def sheet(frames, name, feet_y, stand_px):
 
 
 # ---------- the cow ----------
+COW_BONES = [
+    dict(name='legFL', leg=(130, 480, 440), pivot=(140, 360), fade=(0, 1), fadelen=40, blur=2),
+    dict(name='legFR', leg=(228, 490, 440), pivot=(230, 382), fade=(0, 1), fadelen=40, blur=2),
+    dict(name='legBR', leg=(312, 470, 440), pivot=(313, 425), fade=(0, 1), fadelen=25, blur=2),
+    dict(name='legBL', leg=(410, 480, 440), pivot=(413, 398), fade=(0, 1), fadelen=40, blur=2),
+    dict(name='head', boxes=[(0, 0, 384, 196), (0, 196, 292, 292)], pivot=(205, 300), fade=(0, -1), fadelen=40, blur=8),
+    dict(name='tail', tail=(520, 350, 466), pivot=(462, 228), fade=(1, 0), fadelen=14, blur=2),
+]
+
 def cow():
     img = Image.open('public/art/cow-idle.webp')
     # Boxes are in picture pixels (556 x 520). The cow looks at us, body to the right, tail far right.
-    bones = [
-        dict(name='legFL', leg=(130, 480, 440), pivot=(140, 360), fade=(0, 1), fadelen=40, blur=2),
-        dict(name='legFR', leg=(228, 490, 440), pivot=(230, 382), fade=(0, 1), fadelen=40, blur=2),
-        dict(name='legBR', leg=(312, 470, 440), pivot=(313, 425), fade=(0, 1), fadelen=25, blur=2),
-        dict(name='legBL', leg=(410, 480, 440), pivot=(413, 398), fade=(0, 1), fadelen=40, blur=2),
-        dict(name='head', boxes=[(0, 0, 384, 196), (0, 196, 292, 292)], pivot=(205, 300), fade=(0, -1), fadelen=40, blur=8),
-        dict(name='tail', tail=(520, 350, 466), pivot=(462, 228), fade=(1, 0), fadelen=14, blur=2),
-    ]
+    bones = COW_BONES
     rig = Rig(img, bones)
     feet_y, stand_px = 515, 515
     clips = {}
@@ -194,6 +196,26 @@ def cow():
             'body': (0, 0, 1 - .012 * math.sin(2 * p), 1 + .018 * math.sin(2 * p)),
         }))
     clips['idle'] = sheet(fr, 'cow-idle', feet_y, stand_px)
+    return clips
+
+
+def cow_extras():
+    """Extra clips for the Cow Care room: chewing and a wet-dog shake."""
+    img = Image.open('public/art/cow-idle.webp')
+    rig = Rig(img, COW_BONES)
+    clips = {}
+    fr = []
+    for i in range(24):                                      # two big chews: head dips and comes back up
+        t = i / 24 * 2 * math.pi * 2
+        fr.append(rig.frame({'head': (3 + 3 * math.sin(t), 0, 6 + 5 * math.sin(t)), 'tail': (8 * math.sin(t / 2), 0, 0),
+                             'body': (0, 0, 1, 1 - .01 * math.sin(t))}))
+    clips['eat'] = sheet(fr, 'cow-eat', 515, 515)
+    fr = []
+    for i in range(20):                                      # shake off the water, strongest at the start
+        t = i / 19; k = (1 - t) ** 1.3; w = math.sin(t * math.pi * 7)
+        fr.append(rig.frame({'head': (9 * w * k, 0, 0), 'tail': (22 * w * k, 0, 0),
+                             'body': (0, 0, 1, 1, 4 * w * k)}))
+    clips['shake'] = sheet(fr, 'cow-shake', 515, 515)
     return clips
 
 
@@ -277,5 +299,5 @@ def animal(kind):
 if __name__ == '__main__':
     out = {}
     for which in (sys.argv[1:] or ['cow']):
-        out[which] = cow() if which == 'cow' else animal(which)
+        out[which] = cow() if which == 'cow' else cow_extras() if which == 'cow-extras' else animal(which)
     print(json.dumps(out, indent=1))
