@@ -76,9 +76,9 @@ function settle() { cow.setWalk(0, 0); cow.rest(); busy = false; setFurniture();
 /** The bell and the mud only make sense while she's standing. */
 function setFurniture() {
   // Hidden during the video jump too: that cow is drawn a little differently, so the collar wouldn't line up
-  const standing = cow.pose === 'idle' && !sleeping && cow.clip !== 'happy';
+  const standing = cow.pose === 'idle' && !sleeping && (cow.clip === '' || cow.clip === 'idle');
   layer('ccBell').style.display = standing ? '' : 'none';
-  layer('ccMud').style.display = standing || (cow.pose === 'happy' && cow.clip !== 'happy') ? '' : 'none';
+  layer('ccMud').style.display = standing ? '' : 'none';
 }
 function sway(ms: number, amp = 4, done?: () => void) {
   let t = 0;
@@ -184,10 +184,14 @@ function act(t: Tool, at?: Pt) {
 
 function pet(p = FACE) {
   busy = true;
-  cow.stopClip(); cow.setPose('happy'); setFurniture();
   sfx('content'); later(250, () => speak('cc-tickle'));
   hearts(p.x, p.y - 20, 6);
-  sway(1400, 4, () => { if (need === 'cuddle') fulfilled('cuddle'); settle(); });
+  later(1200, () => hearts(FACE.x, FACE.y - 40, 4));
+  const done = () => { if (need === 'cuddle') fulfilled('cuddle'); settle(); };
+  cow.stopClip(); cow.setPose('idle');
+  if (cow.hasClip('pet')) cow.playClip('pet', false, done);     // the video: eyes close, she leans into it
+  else { cow.setPose('happy'); sway(1400, 4, done); }
+  setFurniture();
 }
 
 function brush(p?: Pt) {
@@ -240,7 +244,7 @@ function food(p?: Pt) {
     f.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(1 - .55 * t).toFixed(2)})`);
   }, () => {
     f.remove();
-    sfx('chomp'); later(800, () => sfx('chomp'));
+    [0, 900, 1900, 2900].forEach(t => later(t, () => sfx('chomp')));
     cow.playClip('eat', false, () => {
       hearts(MOUTH.x, MOUTH.y - 40, 4); speak('yummy');
       if (need === 'hungry') fulfilled('hungry');
@@ -393,18 +397,20 @@ export function initCowCare() {
         if (!active()) return;
         if (sleeping) { wakeUp(); return; }
         holding = true; busy = true;
-        cow.stopClip(); cow.setPose('happy'); setFurniture(); sfx('content');
+        cow.stopClip(); sfx('content');
+        if (cow.hasClip('pet')) cow.playClip('pet', true); else cow.setPose('happy');
+        setFurniture();
         let t = 0, ht = 0;
         const tick = (dt: number) => {
           if (!holding) { tickers.delete(tick); return; }
           t += dt; ht += dt;
-          cow.setWalk(0, Math.sin(t / 160) * 3);
+          if (cow.clip !== 'pet') cow.setWalk(0, Math.sin(t / 160) * 3);
           if (ht > 300) { ht = 0; hearts(FACE.x + rnd(-80, 80), FACE.y - 40, 1); }
         };
         tickers.add(tick);
         if (need === 'cuddle') later(900, () => fulfilled('cuddle'));
       },
-      end: () => { if (!holding) return; holding = false; speak('cc-tickle'); settle(); }
+      end: () => { if (!holding) return; holding = false; cow.stopClip(); speak('cc-tickle'); settle(); }
     },
     drag: {
       start: () => { if (!active()) return false; },

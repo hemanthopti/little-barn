@@ -112,7 +112,7 @@ export class Animal implements Interactive {
    * Play an animated clip in place of the still image. Loops until stopClip(), or plays once and calls done.
    * Each frame is shown by moving the nested <svg>'s viewBox over the sprite sheet.
    */
-  playClip(name: 'walk' | 'happy' | 'idle' | 'eat' | 'sleep' | 'shake', loop: boolean, done?: () => void) {
+  playClip(name: 'walk' | 'happy' | 'idle' | 'eat' | 'sleep' | 'shake' | 'pet', loop: boolean, done?: () => void) {
     const c: Clip | undefined = ANIM[this.kind]?.[name];
     if (!c || !this.clipSvg || !sheetReady(c.src)) { if (c) loadSheet(c.src); done?.(); return; }
     if (this.clipName === name && loop) return;
